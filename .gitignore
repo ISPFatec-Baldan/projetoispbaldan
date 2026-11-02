@@ -18,3 +18,4 @@
 ## Ficheiros de configuração local/desenvolvimento
 appsettings.Development.json
 appsettings.Local.json
+firebase-credentials.json
