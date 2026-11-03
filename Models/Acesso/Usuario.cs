@@ -1,33 +1,26 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using ProjetoISP.Baldan.Models.Setores;
+﻿using Google.Cloud.Firestore;
 
 namespace ProjetoISP.Baldan.Models.Acesso
 {
-    [Table("Usuario")]
+    [FirestoreData]
     public class Usuario
     {
-        [Key]
-        public int Id { get; set; }
+        [FirestoreProperty]
+        public string Id { get; set; }
 
-        [Required]
-        [StringLength(100)]
+        [FirestoreProperty]
         public string Nome { get; set; }
 
-        [Required]
-        [StringLength(100)]
+        [FirestoreProperty]
+        public string Cargo { get; set; }
+
+        [FirestoreProperty]
         public string Email { get; set; }
 
-        [Required]
-        [StringLength(255)]
-        public string Senha { get; set; }
+        [FirestoreProperty]
+        public string PerfilAcesso { get; set; }
 
-        [ForeignKey("PerfilAcesso")]
-        public int PerfilAcessoid { get; set; }
-        public PerfilAcesso PerfilAcesso { get; set; }
-
-        [ForeignKey("SetorArea")]
-        public int? SetorAreaid { get; set; }
-        public SetorArea SetorArea { get; set; }
+        [FirestoreProperty]
+        public string IdSetor { get; set; } // Referência para o ID do Setor
     }
 }

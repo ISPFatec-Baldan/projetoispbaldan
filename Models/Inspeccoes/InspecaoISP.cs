@@ -1,34 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using ProjetoISP.Baldan.Models.Acesso;
-using ProjetoISP.Baldan.Models.Setores;
+﻿using Google.Cloud.Firestore;
 
 namespace ProjetoISP.Baldan.Models.Inspeccoes
 {
-    [Table("InspecaoISP")]
+    [FirestoreData]
     public class InspecaoISP
     {
-        [Key]
-        public int Id { get; set; }
+        [FirestoreProperty]
+        public string Id { get; set; }
 
-        [ForeignKey("SetorArea")]
-        public int SetorAreaid { get; set; }
-        public SetorArea SetorArea { get; set; }
+        [FirestoreProperty]
+        public Timestamp DataHoraInicio { get; set; }
 
-        [ForeignKey("Usuario")]
-        public int Usuarioid { get; set; }
-        public Usuario Usuario { get; set; }
+        [FirestoreProperty]
+        public Timestamp? DataHoraFim { get; set; }
 
-        public DateTime DataInspecao { get; set; } = DateTime.Now;
-        public bool EhRetroativo { get; set; }
+        [FirestoreProperty]
+        public string Status { get; set; }
 
-        [Required]
-        [StringLength(50)]
-        public string Status { get; set; } // Ex: Aberta, Finalizada
+        [FirestoreProperty]
+        public string IdModeloChecklist { get; set; }
 
-        public ICollection<ParticipanteInspecao> Participantes { get; set; }
-        public ICollection<RespostaChecklist> Respostas { get; set; }
+        [FirestoreProperty]
+        public string IdInspetorUsuario { get; set; }
+
+        [FirestoreProperty]
+        public string IdSetor { get; set; }
     }
 }

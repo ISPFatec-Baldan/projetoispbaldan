@@ -1,20 +1,23 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using ProjetoISP.Baldan.Models.Acesso;
+﻿using Google.Cloud.Firestore;
 
 namespace ProjetoISP.Baldan.Models.Setores
 {
-    [Table("SetorArea")]
-    public class SetorArea
+    [FirestoreData]
+    public class Setor
     {
-        [Key]
-        public int Id { get; set; }
+        [FirestoreProperty]
+        public string Id { get; set; }
 
-        [Required]
-        [StringLength(100)]
-        public string Nome { get; set; } // Ex: Solda, Usinagem
+        [FirestoreProperty]
+        public string Nome { get; set; }
 
-        public ICollection<Usuario> Usuarios { get; set; }
+        [FirestoreProperty]
+        public string UrlFotoEquipe { get; set; }
+
+        [FirestoreProperty]
+        public Timestamp Data { get; set; } // Firestore utiliza Timestamp para datas
+
+        [FirestoreProperty]
+        public string IdUnidade { get; set; } // Referência para o ID da Unidade
     }
 }

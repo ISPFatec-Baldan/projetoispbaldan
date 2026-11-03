@@ -1,26 +1,23 @@
 using Google.Cloud.Firestore;
-using ProjetoISP.Baldan.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuração do Firebase (Firestore)
-var projectId = builder.Configuration["Firebase:ProjectId"]
-    ?? throw new InvalidOperationException("Firebase:ProjectId não configurado no appsettings.json");
-
-var credentialPath = builder.Configuration["Firebase:CredentialPath"]
-    ?? throw new InvalidOperationException("Firebase:CredentialPath não configurado no appsettings.json");
-
-var credentialFullPath = Path.Combine(builder.Environment.ContentRootPath, credentialPath);
-
-Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credentialFullPath);
-
-builder.Services.AddSingleton(_ => FirestoreDb.Create(projectId));
-builder.Services.AddSingleton<FirestoreContext>();
-
+// Adicionar os serviços do MVC ao contentor de dependências
 builder.Services.AddControllersWithViews();
+
+// Configurar o caminho para o ficheiro JSON de credenciais do Firebase
+string pathToCred = Path.Combine(builder.Environment.ContentRootPath, "firebase-auth.json");
+Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", pathToCred);
+
+// Registar o FirestoreDb como Singleton para ser injetado nos Controllers
+builder.Services.AddSingleton<FirestoreDb>(provider => {
+    string projectId = "projetoispbaldan";
+    return FirestoreDb.Create(projectId);
+});
 
 var app = builder.Build();
 
+// Configuração do pipeline de requisições HTTP
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
