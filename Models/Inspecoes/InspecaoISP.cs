@@ -1,6 +1,6 @@
 ﻿using Google.Cloud.Firestore;
 
-namespace ProjetoISP.Baldan.Models.Inspeccoes
+namespace ProjetoISP.Baldan.Models.Inspecoes
 {
     [FirestoreData]
     public class InspecaoISP
