@@ -5,8 +5,8 @@ namespace ProjetoISP.Baldan.Models.Acesso
     [FirestoreData]
     public class Usuario
     {
-        [FirestoreProperty]
-        public string Id { get; set; }
+        [FirestoreDocumentId]
+        public string? Id { get; set; }
 
         [FirestoreProperty]
         public string Nome { get; set; }

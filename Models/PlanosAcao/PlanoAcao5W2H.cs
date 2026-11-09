@@ -5,8 +5,8 @@ namespace ProjetoISP.Baldan.Models.PlanosAcao
     [FirestoreData]
     public class PlanoAcao5W2H
     {
-        [FirestoreProperty]
-        public string Id { get; set; }
+        [FirestoreDocumentId]
+        public string? Id { get; set; }
 
         [FirestoreProperty]
         public string DescricaoDesvio { get; set; }

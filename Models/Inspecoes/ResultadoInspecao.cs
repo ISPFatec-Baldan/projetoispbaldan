@@ -1,12 +1,12 @@
 ﻿using Google.Cloud.Firestore;
 
-namespace ProjetoISP.Baldan.Models.Inspeccoes
+namespace ProjetoISP.Baldan.Models.Inspecoes
 {
     [FirestoreData]
     public class ResultadoInspecao
     {
-        [FirestoreProperty]
-        public string Id { get; set; }
+        [FirestoreDocumentId]
+        public string? Id { get; set; }
 
         [FirestoreProperty]
         public string RespostaColetada { get; set; }

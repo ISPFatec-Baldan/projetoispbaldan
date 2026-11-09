@@ -3,10 +3,10 @@
 namespace ProjetoISP.Baldan.Models.Setores
 {
     [FirestoreData]
-    public class Setor
+    public class SetorArea
     {
-        [FirestoreProperty]
-        public string Id { get; set; }
+        [FirestoreDocumentId]
+        public string? Id { get; set; }
 
         [FirestoreProperty]
         public string Nome { get; set; }
@@ -15,9 +15,11 @@ namespace ProjetoISP.Baldan.Models.Setores
         public string UrlFotoEquipe { get; set; }
 
         [FirestoreProperty]
-        public Timestamp Data { get; set; } // Firestore utiliza Timestamp para datas
+        public Timestamp DataCriacao { get; set; } // Firestore utiliza Timestamp para datas
 
         [FirestoreProperty]
         public string IdUnidade { get; set; } // Referência para o ID da Unidade
     }
 }
+
+

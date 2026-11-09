@@ -5,8 +5,8 @@ namespace ProjetoISP.Baldan.Models.PlanosAcao
     [FirestoreData]
     public class HistoricoPrazo5W2H
     {
-        [FirestoreProperty]
-        public string Id { get; set; }
+        [FirestoreDocumentId]
+        public string? Id { get; set; }
 
         [FirestoreProperty]
         public Timestamp PrazoAnterior { get; set; }
@@ -21,6 +21,6 @@ namespace ProjetoISP.Baldan.Models.PlanosAcao
         public Timestamp DataAlteracao { get; set; }
 
         [FirestoreProperty]
-        public string IdPlanosAcao { get; set; }
+        public string IdPlanoAcao { get; set; }
     }
 }

@@ -1,12 +1,12 @@
 ﻿using Google.Cloud.Firestore;
 
-namespace ProjetoISP.Baldan.Models
+namespace ProjetoISP.Baldan.Models.Setores
 {
     [FirestoreData]
     public class Unidade
     {
-        [FirestoreProperty]
-        public string Id { get; set; } // No Firestore, IDs costumam ser strings (auto-geradas)
+        [FirestoreDocumentId]
+        public string? Id { get; set; }  // No Firestore, IDs costumam ser strings (auto-geradas)
 
         [FirestoreProperty]
         public string Nome { get; set; }

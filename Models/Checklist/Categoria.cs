@@ -5,8 +5,8 @@ namespace ProjetoISP.Baldan.Models.Checklist
     [FirestoreData]
     public class Categoria
     {
-        [FirestoreProperty]
-        public string Id { get; set; }
+        [FirestoreDocumentId]
+        public string? Id { get; set; }
 
         [FirestoreProperty]
         public string Nome { get; set; }
