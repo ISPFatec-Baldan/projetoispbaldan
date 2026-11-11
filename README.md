@@ -18,7 +18,9 @@ appsettings.json          Configurações gerais do ambiente
 ## Pré-requisitos
 
 -.NET 8 SDK
+
 -Visual Studio 2022 (com workload ASP.NET e desenvolvimento Web)
+
 -Ficheiro de credenciais firebase-auth.json configurado
 
 ## Iniciar o ambiente de desenvolvimento
