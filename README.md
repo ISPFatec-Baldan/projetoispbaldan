@@ -67,6 +67,8 @@ Integrantes:
 
 -Thiago Tumang	
 
+-Humberto Gomes
+
 ## Documentação
 Desenvolvido no âmbito do curso de Desenvolvimento de Software Multiplataforma da Fatec Matão em colaboração com a Baldan.
 
