@@ -1,4 +1,4 @@
-# ProjetoISP.Baldan
+# Projeto ISP Baldan & Fatec
 
 Sistema de Inspeção de Segurança Periódica (ISP) para automação e gestão de conformidade industrial.
 
