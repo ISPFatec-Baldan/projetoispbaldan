@@ -78,6 +78,19 @@ namespace ProjetoISP.Baldan.Controllers
 
             await ValidarReferenciasAsync(plano, validarResultado: true);
 
+            // DER: um resultado de inspeção gera no máximo UM plano de ação
+            if (!string.IsNullOrEmpty(plano.IdResultadoInspecao))
+            {
+                var planosDoResultado = await Colecao
+                    .WhereEqualTo(nameof(PlanoAcao5W2H.IdResultadoInspecao), plano.IdResultadoInspecao)
+                    .Limit(1)
+                    .GetSnapshotAsync();
+
+                if (planosDoResultado.Count > 0)
+                    ModelState.AddModelError(nameof(PlanoAcao5W2H.IdResultadoInspecao),
+                        "Este resultado já possui um plano de ação.");
+            }
+
             if (prazo == null)
                 ModelState.AddModelError("prazo", "Informe o prazo.");
             else if (prazo.Value.Date < DateTime.Today)
@@ -266,8 +279,19 @@ namespace ProjetoISP.Baldan.Controllers
         private async Task CarregarListasAsync(string? idResultado, string? idResponsavel)
         {
             var resultados = await RotulosResultadosAsync();
+
+            // DER: um resultado gera no máximo UM plano -> só lista resultados que ainda não têm plano
+            var planosSnap = await Colecao.GetSnapshotAsync();
+            var resultadosComPlano = planosSnap.Documents
+                .Select(d => d.ConvertTo<PlanoAcao5W2H>().IdResultadoInspecao)
+                .ToHashSet();
+
             ViewBag.Resultados = new SelectList(
-                resultados.Select(r => new { Id = r.Key, Rotulo = r.Value }).ToList(), "Id", "Rotulo", idResultado);
+                resultados
+                    .Where(r => !resultadosComPlano.Contains(r.Key))
+                    .Select(r => new { Id = r.Key, Rotulo = r.Value })
+                    .ToList(),
+                "Id", "Rotulo", idResultado);
 
             await CarregarResponsaveisAsync(idResponsavel);
             ViewBag.StatusLista = new SelectList(StatusDisponiveis);
