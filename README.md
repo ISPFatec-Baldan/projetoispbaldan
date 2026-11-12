@@ -67,7 +67,7 @@ Integrantes:
 
 -Thiago Tumang	
 
-## Documentação e Parceria
+## Documentação
 Desenvolvido no âmbito do curso de Desenvolvimento de Software Multiplataforma da Fatec Matão em colaboração com a Baldan.
 
 -https://app.notion.com/p/Projeto-ISP-Baldan-3bfad5cda97f80879e27d08b146772f2?source=copy_link
