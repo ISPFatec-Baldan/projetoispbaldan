@@ -54,5 +54,20 @@ O fluxo principal estabelece a seguinte pipeline de dados:
 Plaintext
 Interface (Razor Views) -> Controllers -> SDK Firestore -> Google Cloud Firestore
 
+## Equipe
+Integrantes:	
+-Eduardo Alves	
+-Ygor Gabriel	
+-Gabriel Alves	
+-Igor Torrichelli	
+-Thiago Tumang	
+
 ## Documentação e Parceria
 Desenvolvido no âmbito do curso de Desenvolvimento de Software Multiplataforma da Fatec Matão em colaboração com a Baldan.
+-https://app.notion.com/p/Projeto-ISP-Baldan-3bfad5cda97f80879e27d08b146772f2?source=copy_link
+
+## Informações Acadêmicas
+Instituição: Centro Paula Souza — Fatec Matão "Luiz Marchesan"
+Curso: Tecnologia em Desenvolvimento de Software Multiplataforma
+Tipo de trabalho: Projeto Interdisciplinar (PI) — 2º Semestre de 2026
+Parceria: Baldan - Máquinas e Implementos Agrícolas
