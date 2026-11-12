@@ -56,6 +56,7 @@ Interface (Razor Views) -> Controllers -> SDK Firestore -> Google Cloud Firestor
 
 ## Equipe
 Integrantes:	
+
 -Eduardo Alves
 
 -Ygor Gabriel	
