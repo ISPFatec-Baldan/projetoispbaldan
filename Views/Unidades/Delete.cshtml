@@ -1,0 +1,26 @@
+﻿@model ProjetoISP.Baldan.Models.Setores.Unidade
+
+@{
+    ViewData["Title"] = "Excluir unidade";
+}
+
+<h1>Excluir unidade</h1>
+
+<h5 class="text-danger">Tem certeza de que deseja excluir esta unidade?</h5>
+
+<dl class="row">
+    <dt class="col-sm-2">Nome</dt>
+    <dd class="col-sm-10">@Model.Nome</dd>
+
+    <dt class="col-sm-2">Cidade</dt>
+    <dd class="col-sm-10">@Model.Cidade</dd>
+
+    <dt class="col-sm-2">Estado</dt>
+    <dd class="col-sm-10">@Model.Estado</dd>
+</dl>
+
+<form asp-action="Delete">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Excluir</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>

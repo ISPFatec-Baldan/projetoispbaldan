@@ -1,0 +1,47 @@
+﻿@model IEnumerable<ProjetoISP.Baldan.Models.Setores.SetorArea>
+
+@{
+    ViewData["Title"] = "Setores";
+    var nomesUnidades = (Dictionary<string, string>)ViewBag.NomesUnidades;
+}
+
+<h1>Setores</h1>
+
+<partial name="_Mensagens" />
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Novo setor</a>
+</p>
+
+@if (!Model.Any())
+{
+    <p class="text-muted">Nenhum setor cadastrado.</p>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Unidade</th>
+                <th>Criado em</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Nome</td>
+                    <td>@(nomesUnidades.TryGetValue(item.IdUnidade ?? "", out var nomeUnidade) ? nomeUnidade : "—")</td>
+                    <td>@item.DataCriacao.ToDateTime().ToLocalTime().ToString("dd/MM/yyyy")</td>
+                    <td class="text-end">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Detalhes</a>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Editar</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Excluir</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

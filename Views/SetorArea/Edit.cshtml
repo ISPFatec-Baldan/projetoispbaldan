@@ -1,0 +1,43 @@
+﻿@model ProjetoISP.Baldan.Models.Setores.SetorArea
+
+@{
+    ViewData["Title"] = "Editar setor";
+}
+
+<h1>Editar setor</h1>
+
+<div class="row">
+    <div class="col-md-5">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label asp-for="Nome" class="form-label">Nome</label>
+                <input asp-for="Nome" class="form-control" />
+                <span asp-validation-for="Nome" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="IdUnidade" class="form-label">Unidade</label>
+                <select asp-for="IdUnidade" asp-items="(SelectList)ViewBag.Unidades" class="form-select">
+                    <option value="">Selecione...</option>
+                </select>
+                <span asp-validation-for="IdUnidade" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="UrlFotoEquipe" class="form-label">Foto da equipe (link, opcional)</label>
+                <input asp-for="UrlFotoEquipe" class="form-control" placeholder="https://..." />
+                <span asp-validation-for="UrlFotoEquipe" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Salvar</button>
+            <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

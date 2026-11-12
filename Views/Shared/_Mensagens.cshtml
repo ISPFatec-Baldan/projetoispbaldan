@@ -1,0 +1,8 @@
+﻿@* Exibe a mensagem de erro enviada pelos controllers via TempData["Erro"] *@
+@if (TempData["Erro"] is string erro)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @erro
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+}

@@ -1,0 +1,29 @@
+﻿@model ProjetoISP.Baldan.Models.Setores.SetorArea
+
+@{
+    ViewData["Title"] = "Detalhes do setor";
+}
+
+<h1>Detalhes do setor</h1>
+
+<dl class="row">
+    <dt class="col-sm-2">Nome</dt>
+    <dd class="col-sm-10">@Model.Nome</dd>
+
+    <dt class="col-sm-2">Unidade</dt>
+    <dd class="col-sm-10">@ViewBag.NomeUnidade</dd>
+
+    <dt class="col-sm-2">Criado em</dt>
+    <dd class="col-sm-10">@Model.DataCriacao.ToDateTime().ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
+
+    @if (!string.IsNullOrEmpty(Model.UrlFotoEquipe))
+    {
+        <dt class="col-sm-2">Foto da equipe</dt>
+        <dd class="col-sm-10">
+            <img src="@Model.UrlFotoEquipe" alt="Foto da equipe" class="img-thumbnail" style="max-height: 200px;" />
+        </dd>
+    }
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Editar</a>
+<a asp-action="Index" class="btn btn-secondary">Voltar</a>
