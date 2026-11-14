@@ -151,7 +151,7 @@ namespace ProjetoISP.Baldan.Controllers
         private async Task<Dictionary<string, string>> NomesUnidadesAsync()
         {
             var snapshot = await _db.Collection(Colecoes.Unidades).GetSnapshotAsync();
-            return snapshot.Documents.ToDictionary(d => d.Id, d => d.ConvertTo<Unidade>().Nome);
+            return snapshot.Documents.ToDictionary(d => d.Id, d => d.ConvertTo<Unidade>().Cidade);
         }
 
         private async Task<string> NomeUnidadeAsync(string? idUnidade)
@@ -159,7 +159,7 @@ namespace ProjetoISP.Baldan.Controllers
             if (string.IsNullOrEmpty(idUnidade)) return "—";
 
             var snapshot = await _db.Collection(Colecoes.Unidades).Document(idUnidade).GetSnapshotAsync();
-            return snapshot.Exists ? snapshot.ConvertTo<Unidade>().Nome : "—";
+            return snapshot.Exists ? snapshot.ConvertTo<Unidade>().Cidade : "—";
         }
 
         private async Task CarregarUnidadesAsync(string? selecionada = null)
@@ -167,10 +167,10 @@ namespace ProjetoISP.Baldan.Controllers
             var snapshot = await _db.Collection(Colecoes.Unidades).GetSnapshotAsync();
             var unidades = snapshot.Documents
                 .Select(d => d.ConvertTo<Unidade>())
-                .OrderBy(u => u.Nome)
+                .OrderBy(u => u.Cidade)
                 .ToList();
 
-            ViewBag.Unidades = new SelectList(unidades, nameof(Unidade.Id), nameof(Unidade.Nome), selecionada);
+            ViewBag.Unidades = new SelectList(unidades, nameof(Unidade.Id), nameof(Unidade.Cidade), selecionada);
         }
 
         private async Task ValidarUnidadeAsync(SetorArea setor)

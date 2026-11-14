@@ -1,0 +1,27 @@
+﻿@{
+    ViewData["Title"] = "Entrar";
+    Layout = "_LayoutLogin";
+}
+
+<a asp-controller="Conta" asp-action="Entrar" asp-route-returnUrl="@ViewBag.ReturnUrl"
+   class="login-cartao" aria-label="Fazer login com a conta Microsoft da empresa">
+
+    @* Logo da Microsoft (4 quadrados) *@
+    <svg class="login-ms" viewBox="0 0 28 28" fill="#000" aria-hidden="true">
+        <rect x="0" y="0" width="13" height="13" />
+        <rect x="15" y="0" width="13" height="13" />
+        <rect x="0" y="15" width="13" height="13" />
+        <rect x="15" y="15" width="13" height="13" />
+    </svg>
+
+    <div class="login-texto">
+        <p>Faça login com seu<br />email da empresa</p>
+        <span class="login-logo-pequeno">
+            <svg viewBox="0 0 40 30" width="18" height="14" fill="none" stroke="#e30613" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 4l11 11L3 26" />
+                <path d="M20 4l11 11-11 11" />
+            </svg>
+            BALDAN
+        </span>
+    </div>
+</a>

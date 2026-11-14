@@ -1,0 +1,117 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Baldan ISP</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/isp.css" asp-append-version="true" />
+</head>
+<body class="isp">
+    <div class="isp-moldura">
+
+        @* ===== Barra lateral (ícones) ===== *@
+        <aside class="isp-lateral">
+            <button type="button" id="botaoMenu" class="isp-icone" title="Menu" aria-label="Abrir menu"
+                    aria-controls="menuIsp" aria-expanded="false">
+                <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" aria-hidden="true">
+                    <path d="M4 8h28M4 18h28M4 28h28" />
+                </svg>
+            </button>
+
+            <a asp-controller="Home" asp-action="Index" class="isp-icone" title="Início" aria-label="Início">
+                <svg viewBox="0 0 36 36" fill="currentColor" aria-hidden="true">
+                    <path d="M18 3 2 17h5v15h8V22h6v10h8V17h5z" />
+                </svg>
+            </a>
+
+            <a asp-controller="InspecoesISP" asp-action="Index" class="isp-icone" title="Inspeções" aria-label="Inspeções">
+                <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5 31l2-8L25 5l6 6-18 18z" />
+                    <path d="M22 8l6 6" />
+                </svg>
+            </a>
+
+            <a asp-controller="ModeloChecklist" asp-action="Index" class="isp-icone" title="Checklists" aria-label="Checklists">
+                <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="7" y="4" width="22" height="28" rx="3" />
+                    <path d="M12 11h12M12 16h12" />
+                    <path d="m13 25 3 3 7-7" />
+                </svg>
+            </a>
+
+            <a asp-controller="PlanoAcao5W2H" asp-action="Index" class="isp-icone" title="Planos de ação" aria-label="Planos de ação">
+                <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.8" aria-hidden="true">
+                    <circle cx="18" cy="18" r="14" />
+                    <circle cx="18" cy="18" r="8" />
+                    <circle cx="18" cy="18" r="2.5" fill="currentColor" />
+                </svg>
+            </a>
+        </aside>
+
+        @* ===== Menu completo (abre pelo botão de 3 linhas) ===== *@
+        <nav id="menuIsp" class="isp-menu" aria-label="Menu principal">
+            <h2 class="isp-menu-titulo">Cadastros</h2>
+            <a asp-controller="Unidades" asp-action="Index">Unidades</a>
+            <a asp-controller="SetorArea" asp-action="Index">Setores</a>
+            <a asp-controller="Usuario" asp-action="Index">Usuários</a>
+            <a asp-controller="Categoria" asp-action="Index">Categorias</a>
+            <a asp-controller="ModeloChecklist" asp-action="Index">Modelos de checklist</a>
+            <a asp-controller="ItemChecklist" asp-action="Index">Itens de checklist</a>
+
+            <h2 class="isp-menu-titulo">Inspeções</h2>
+            <a asp-controller="InspecoesISP" asp-action="Index">Inspeções</a>
+            <a asp-controller="ResultadoInspecao" asp-action="Index">Resultados</a>
+
+            <h2 class="isp-menu-titulo">Planos de ação</h2>
+            <a asp-controller="PlanoAcao5W2H" asp-action="Index">Planos de ação (5W2H)</a>
+            <a asp-controller="HistoricoPrazo5W2H" asp-action="Index">Histórico de prazos</a>
+        </nav>
+
+        <div class="isp-principal">
+
+            @* ===== Cabeçalho ===== *@
+            <header class="isp-cabecalho">
+                @* Troque este bloco pela imagem do logo quando tiver o arquivo:
+                   <img src="~/img/logo-baldan-isp.png" alt="Baldan ISP" height="40" /> *@
+                <a asp-controller="Home" asp-action="Index" class="isp-logo" aria-label="Baldan ISP">
+                    <svg viewBox="0 0 40 30" width="34" height="26" fill="none" stroke="#e30613" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 4l11 11L3 26" />
+                        <path d="M20 4l11 11-11 11" />
+                    </svg>
+                    <span class="isp-logo-nome">BALDAN</span>
+                    <span class="isp-logo-sep">|</span>
+                    <span class="isp-logo-isp">ISP</span>
+                </a>
+
+                @* Nome de quem está logado + botão para sair (ícone do usuário) *@
+                <div class="isp-usuario-area">
+                    <span class="isp-usuario-nome">@User.Identity?.Name</span>
+                    <form asp-controller="Conta" asp-action="Sair" method="post">
+                        <button type="submit" class="isp-usuario" title="Sair" aria-label="Sair">
+                            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true">
+                                <circle cx="24" cy="24" r="21" />
+                                <circle cx="24" cy="18" r="7" />
+                                <path d="M9 38c2-8 8-11 15-11s13 3 15 11" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </header>
+
+            <main role="main" class="isp-conteudo">
+                @RenderBody()
+            </main>
+
+            <footer class="isp-rodape">
+                Baldan &copy; @DateTime.Now.Year. Todos os direitos reservados.
+            </footer>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/isp.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

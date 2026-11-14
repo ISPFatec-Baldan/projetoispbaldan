@@ -13,9 +13,11 @@ namespace ProjetoISP.Baldan.Controllers
             _logger = logger;
         }
 
+        // Tela inicial (dashboard).
+        // TODO: trocar DashboardViewModel.Exemplo() pelas consultas reais ao Firestore.
         public IActionResult Index()
         {
-            return View();
+            return View(DashboardViewModel.Exemplo());
         }
 
         public IActionResult Privacy()

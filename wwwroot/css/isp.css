@@ -1,0 +1,325 @@
+﻿:root {
+    --isp-fundo: #d9d9d9;
+    --isp-lateral: #dcdcdc;
+    --isp-rodape: #9b9494;
+    --isp-azul: #002147;
+    --isp-ok: #22b800;
+    --isp-ruim: #ff0000;
+    --isp-largura-lateral: 64px;
+}
+
+body.isp {
+    margin: 0;
+    background: var(--isp-fundo);
+    color: #111;
+}
+
+/* ===== Moldura ===== */
+.isp-moldura {
+    display: grid;
+    grid-template-columns: var(--isp-largura-lateral) minmax(0, 1fr);
+    min-height: 100vh;
+}
+
+.isp-lateral {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    background: var(--isp-lateral);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 0;
+    z-index: 1050;
+}
+
+.isp-icone {
+    display: block;
+    padding: 6px;
+    border: 0;
+    border-radius: 10px;
+    background: none;
+    color: #000;
+    line-height: 0;
+}
+
+    .isp-icone svg {
+        width: 38px;
+        height: 38px;
+    }
+
+    .isp-icone:hover, .isp-icone:focus-visible {
+        background: rgba(0, 0, 0, .1);
+        color: #000;
+    }
+
+/* ===== Menu completo ===== */
+.isp-menu {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: var(--isp-largura-lateral);
+    width: 270px;
+    padding: 20px 16px;
+    background: #fff;
+    box-shadow: 4px 0 12px rgba(0, 0, 0, .25);
+    overflow-y: auto;
+    transform: translateX(-120%);
+    transition: transform .2s ease;
+    z-index: 1040;
+}
+
+    .isp-menu.aberto {
+        transform: none;
+    }
+
+.isp-menu-titulo {
+    margin: 18px 0 6px;
+    font-size: .8rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #666;
+}
+
+    .isp-menu-titulo:first-child {
+        margin-top: 0;
+    }
+
+.isp-menu a {
+    display: block;
+    padding: 8px 10px;
+    border-radius: 8px;
+    color: #111;
+    text-decoration: none;
+}
+
+    .isp-menu a:hover {
+        background: #eee;
+    }
+
+/* ===== Cabeçalho, conteúdo e rodapé ===== */
+.isp-principal {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.isp-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+    padding: 0 28px;
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .2);
+}
+
+.isp-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #444;
+    text-decoration: none;
+}
+
+.isp-logo-nome {
+    font-size: 1.7rem;
+    font-weight: 800;
+    font-style: italic;
+    letter-spacing: .04em;
+}
+
+.isp-logo-sep {
+    font-size: 1.7rem;
+    font-weight: 300;
+}
+
+.isp-logo-isp {
+    font-size: 1.5rem;
+    font-weight: 500;
+    font-style: italic;
+}
+
+.isp-usuario {
+    color: #000;
+    line-height: 0;
+}
+
+button.isp-usuario {
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+
+.isp-usuario-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.isp-usuario-nome {
+    font-size: .9rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.isp-usuario svg {
+    width: 48px;
+    height: 48px;
+}
+
+.isp-conteudo {
+    flex: 1;
+    padding: 24px 32px 40px;
+}
+
+.isp-rodape {
+    padding: 30px 16px;
+    background: var(--isp-rodape);
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111;
+}
+
+/* ===== Indicadores ===== */
+.kpi-grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 28px;
+    max-width: 1100px;
+    margin: 0 auto 40px;
+}
+
+.kpi-cartao {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 130px;
+    padding: 20px 14px;
+    background: #f5f5f5;
+    border-radius: 28px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, .25);
+    text-align: center;
+}
+
+.kpi-destaque {
+    background: var(--isp-azul);
+    color: #fff;
+}
+
+.kpi-valor {
+    font-size: 3.2rem;
+    font-weight: 500;
+    line-height: 1.1;
+}
+
+.kpi-rotulo {
+    margin-top: 6px;
+    font-size: .85rem;
+    font-weight: 700;
+}
+
+.texto-ok {
+    color: var(--isp-ok);
+}
+
+.texto-ruim {
+    color: var(--isp-ruim);
+}
+
+/* ===== Painel inferior ===== */
+.painel-grade {
+    display: grid;
+    grid-template-columns: minmax(200px, 250px) minmax(200px, 1fr) minmax(280px, 1.2fr);
+    gap: 32px;
+    align-items: start;
+}
+
+.painel-titulo {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.painel-subtitulo {
+    margin: 0 0 12px;
+    font-size: .85rem;
+    font-weight: 700;
+}
+
+.painel-titulo-pequeno {
+    display: block;
+    margin: 0 0 8px;
+    font-size: .8rem;
+    font-weight: 700;
+}
+
+.lista-setores {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: .72rem;
+    font-weight: 700;
+}
+
+    .lista-setores li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 1px 0;
+    }
+
+.bolinha {
+    flex: none;
+    width: 11px;
+    height: 11px;
+    border: 1px solid #000;
+    border-radius: 50%;
+}
+
+    .bolinha.ok {
+        background: var(--isp-ok);
+    }
+
+    .bolinha.ruim {
+        background: var(--isp-ruim);
+    }
+
+.painel-filtros {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filtro-campo {
+    max-width: 200px;
+    margin-bottom: 40px;
+    background-color: #c9c9c9;
+    border-color: #bbb;
+    font-weight: 700;
+}
+
+.grafico-area {
+    position: relative;
+    height: 340px;
+}
+
+/* ===== Telas pequenas ===== */
+@media (max-width: 992px) {
+    .painel-grade {
+        grid-template-columns: 1fr;
+    }
+
+    .filtro-campo {
+        margin-bottom: 16px;
+    }
+
+    .isp-conteudo {
+        padding: 16px;
+    }
+}

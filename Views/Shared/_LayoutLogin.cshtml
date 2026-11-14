@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Baldan ISP</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/isp.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+</head>
+<body class="isp isp-login">
+
+    <header class="isp-cabecalho">
+        @* Troque este bloco pela imagem do logo quando tiver o arquivo:
+           <img src="~/img/logo-baldan-isp.png" alt="Baldan ISP" height="40" /> *@
+        <span class="isp-logo" aria-label="Baldan ISP">
+            <svg viewBox="0 0 40 30" width="34" height="26" fill="none" stroke="#e30613" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 4l11 11L3 26" />
+                <path d="M20 4l11 11-11 11" />
+            </svg>
+            <span class="isp-logo-nome">BALDAN</span>
+            <span class="isp-logo-sep">|</span>
+            <span class="isp-logo-isp">ISP</span>
+        </span>
+    </header>
+
+    <main role="main" class="isp-login-conteudo">
+        @RenderBody()
+    </main>
+
+    <footer class="isp-rodape">
+        Baldan &copy; @DateTime.Now.Year. Todos os direitos reservados.
+    </footer>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

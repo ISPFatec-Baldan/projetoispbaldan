@@ -1,0 +1,62 @@
+﻿/* Tela de login (Figma "Desktop - 1") */
+body.isp-login {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.isp-login-conteudo {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+}
+
+.login-cartao {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-width: 300px;
+    padding: 24px 30px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 3px 7px rgba(0, 0, 0, .3);
+    color: #111;
+    text-decoration: none;
+    transition: box-shadow .15s ease, transform .15s ease;
+}
+
+    .login-cartao:hover,
+    .login-cartao:focus-visible {
+        color: #111;
+        box-shadow: 0 7px 16px rgba(0, 0, 0, .35);
+        transform: translateY(-1px);
+    }
+
+.login-ms {
+    width: 30px;
+    height: 30px;
+    flex: none;
+}
+
+.login-texto {
+    font-size: .85rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+    .login-texto p {
+        margin: 0 0 10px;
+    }
+
+.login-logo-pequeno {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #444;
+    font-size: .9rem;
+    font-style: italic;
+    font-weight: 800;
+    letter-spacing: .04em;
+}
