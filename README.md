@@ -21,17 +21,17 @@ appsettings.json          Configurações gerais do ambiente
 
 -Visual Studio 2022 (com workload ASP.NET e desenvolvimento Web)
 
--Ficheiro de credenciais firebase-auth.json configurado
+-Ficheiro de credenciais firebase-key.json configurado
 
 ## Iniciar o ambiente de desenvolvimento
 
 Clonar o repositório
 
 ```bash
-git clone [https://github.com/YgorSilva-Git/projetoispbaldan.git](https://github.com/YgorSilva-Git/projetoispbaldan.git)
+git clone https://github.com/ISPFatec-Baldan/projetoispbaldan.git
 ```
 
-Adiciona o ficheiro de chave de serviço firebase-auth.json na raiz do projeto ProjetoISP.Baldan/.
+Adiciona o ficheiro de chave de serviço firebase-key.json na raiz do projeto ProjetoISP.Baldan/.
 
 Exeuta a aplicação localmente:
 
@@ -57,17 +57,17 @@ Interface (Razor Views) -> Controllers -> SDK Firestore -> Google Cloud Firestor
 ## Equipe
 Integrantes:	
 
--Eduardo Alves
+-Eduardo Alves - Infraestruture👨‍💻
 
--Ygor Gabriel	
+-Ygor Gabriel	- Manager✍️
 
--Gabriel Alves	
+-Gabriel Alves - Engine👷‍♂️
 
--Igor Torrichelli	
+-Igor Torrichelli - Sustentation🧰
 
--Thiago Tumang	
+-Thiago Tumang	- Architeture🗂️
 
--Humberto Gomes
+-Humberto Gomes - Sustentation🧰
 
 ## Documentação
 Desenvolvido no âmbito do curso de Desenvolvimento de Software Multiplataforma da Fatec Matão em colaboração com a Baldan.
