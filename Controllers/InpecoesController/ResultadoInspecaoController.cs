@@ -5,6 +5,7 @@ using ProjetoISP.Baldan.Models.Checklist;
 using ProjetoISP.Baldan.Models.Inspecoes;
 using ProjetoISP.Baldan.Models.PlanosAcao;
 using ProjetoISP.Baldan.Models.Setores;
+using ProjetoISP.Baldan.Services;
 
 namespace ProjetoISP.Baldan.Controllers
 {
@@ -58,13 +59,19 @@ namespace ProjetoISP.Baldan.Controllers
         public async Task<IActionResult> Create(
             [Bind("RespostaColetada,Observacoes,UrlFotoEvidencia,IdInspecao,IdItemChecklist")] ResultadoInspecao resultado)
         {
-            await ValidarAsync(resultado, idAtual: null);
+            var item = await ValidarAsync(resultado, idAtual: null);
 
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid || item == null)
             {
                 await CarregarListasAsync(resultado.IdInspecao, resultado.IdItemChecklist);
                 return View(resultado);
             }
+
+            // A resposta guarda o texto e a versão da pergunta NO MOMENTO em que foi dada:
+            // editar a pergunta depois não altera o que já foi respondido.
+            resultado.DescricaoPerguntaRegistrada = item.DescricaoPergunta;
+            resultado.VersaoPergunta = item.Versao;
+            resultado.DataRegistro = Timestamp.GetCurrentTimestamp();
 
             await Colecao.AddAsync(resultado);
             return RedirectToAction(nameof(Index), new { idInspecao = resultado.IdInspecao });
@@ -93,6 +100,9 @@ namespace ProjetoISP.Baldan.Controllers
             if (existente == null) return NotFound();
 
             IgnorarValidacao(nameof(ResultadoInspecao.IdInspecao), nameof(ResultadoInspecao.IdItemChecklist));
+
+            if (!RespostasPadrao.Todas.Contains(resultado.RespostaColetada))
+                ModelState.AddModelError(nameof(ResultadoInspecao.RespostaColetada), "Resposta inválida.");
 
             if (!ModelState.IsValid)
             {
@@ -178,27 +188,38 @@ namespace ProjetoISP.Baldan.Controllers
             return rotulos;
         }
 
-        // Dropdowns do Create. Se a inspeção já foi escolhida, só aparecem os itens do checklist dela.
+        // Dropdowns do Create. Se a inspeção já foi escolhida, só aparecem as perguntas que estavam
+        // no checklist dela na semana em que ela começou.
         private async Task CarregarListasAsync(string? idInspecao, string? idItem)
         {
             var rotulos = await RotulosInspecoesAsync();
             ViewBag.Inspecoes = new SelectList(
                 rotulos.Select(r => new { Id = r.Key, Rotulo = r.Value }).ToList(), "Id", "Rotulo", idInspecao);
 
-            string? idModelo = null;
+            HashSet<string>? idsPermitidos = null;
             if (!string.IsNullOrEmpty(idInspecao))
             {
                 var inspecaoSnap = await _db.Collection(Colecoes.Inspecoes).Document(idInspecao).GetSnapshotAsync();
                 if (inspecaoSnap.Exists)
-                    idModelo = inspecaoSnap.ConvertTo<InspecaoISP>().IdModeloChecklist;
+                {
+                    var inspecao = inspecaoSnap.ConvertTo<InspecaoISP>();
+                    var inicio = inspecao.DataHoraInicio.ToDateTime();
+
+                    var vinculosSnap = await _db.Collection(Colecoes.ChecklistPerguntas)
+                        .WhereEqualTo(nameof(ChecklistPergunta.IdModeloChecklist), inspecao.IdModeloChecklist)
+                        .GetSnapshotAsync();
+
+                    idsPermitidos = vinculosSnap.Documents
+                        .Select(d => d.ConvertTo<ChecklistPergunta>())
+                        .Where(v => VigenciaService.Vigente(v, inicio))
+                        .Select(v => v.IdItemChecklist)
+                        .ToHashSet();
+                }
             }
 
-            Query consultaItens = _db.Collection(Colecoes.ItensChecklist);
-            if (!string.IsNullOrEmpty(idModelo))
-                consultaItens = consultaItens.WhereEqualTo(nameof(ItemChecklist.IdModeloChecklist), idModelo);
-
-            var itensSnap = await consultaItens.GetSnapshotAsync();
+            var itensSnap = await _db.Collection(Colecoes.ItensChecklist).GetSnapshotAsync();
             var itens = itensSnap.Documents
+                .Where(d => idsPermitidos == null || idsPermitidos.Contains(d.Id))
                 .Select(d => d.ConvertTo<ItemChecklist>())
                 .OrderBy(i => i.DataCriacao.ToDateTime())
                 .ToList();
@@ -213,13 +234,18 @@ namespace ProjetoISP.Baldan.Controllers
             ViewBag.RotuloInspecao = rotulos.TryGetValue(resultado.IdInspecao ?? string.Empty, out var r) ? r : "—";
 
             var itens = await NomesItensAsync();
-            ViewBag.NomeItem = itens.TryGetValue(resultado.IdItemChecklist ?? string.Empty, out var i) ? i : "—";
+            ViewBag.NomeItem = !string.IsNullOrEmpty(resultado.DescricaoPerguntaRegistrada)
+                ? resultado.DescricaoPerguntaRegistrada
+                : (itens.TryGetValue(resultado.IdItemChecklist ?? string.Empty, out var i) ? i : "—");
         }
 
-        private async Task ValidarAsync(ResultadoInspecao resultado, string? idAtual)
+        private async Task<ItemChecklist?> ValidarAsync(ResultadoInspecao resultado, string? idAtual)
         {
             InspecaoISP? inspecao = null;
             ItemChecklist? item = null;
+
+            if (!RespostasPadrao.Todas.Contains(resultado.RespostaColetada))
+                ModelState.AddModelError(nameof(ResultadoInspecao.RespostaColetada), "Resposta inválida.");
 
             if (!string.IsNullOrEmpty(resultado.IdInspecao))
             {
@@ -235,14 +261,24 @@ namespace ProjetoISP.Baldan.Controllers
                 else ModelState.AddModelError(nameof(ResultadoInspecao.IdItemChecklist), "Item de checklist inválido.");
             }
 
-            if (inspecao == null || item == null) return;
+            if (inspecao == null || item == null) return item;
 
-            // O item precisa pertencer ao checklist usado na inspeção
-            if (item.IdModeloChecklist != inspecao.IdModeloChecklist)
+            // A pergunta precisa estar no checklist da inspeção na data em que a inspeção começou
+            // (as mudanças nos checklists valem por semana).
+            var vinculosSnap = await _db.Collection(Colecoes.ChecklistPerguntas)
+                .WhereEqualTo(nameof(ChecklistPergunta.IdItemChecklist), resultado.IdItemChecklist)
+                .GetSnapshotAsync();
+
+            var inicio = inspecao.DataHoraInicio.ToDateTime();
+            bool noChecklist = vinculosSnap.Documents
+                .Select(d => d.ConvertTo<ChecklistPergunta>())
+                .Any(v => v.IdModeloChecklist == inspecao.IdModeloChecklist && VigenciaService.Vigente(v, inicio));
+
+            if (!noChecklist)
             {
                 ModelState.AddModelError(nameof(ResultadoInspecao.IdItemChecklist),
-                    "Este item não pertence ao checklist da inspeção.");
-                return;
+                    "Esta pergunta não faz parte do checklist desta inspeção nesta semana.");
+                return item;
             }
 
             // Um item só pode ser respondido uma vez por inspeção
@@ -257,6 +293,8 @@ namespace ProjetoISP.Baldan.Controllers
             if (jaRespondido)
                 ModelState.AddModelError(nameof(ResultadoInspecao.IdItemChecklist),
                     "Este item já foi respondido nesta inspeção.");
+
+            return item;
         }
 
         // Remove do ModelState os erros de campos que não vêm do formulário.

@@ -1,0 +1,108 @@
+﻿/* Painel: novo arranjo (Setores | Recorrências | Gráfico, e Atenção por baixo). */
+
+.painel-grade-3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+    align-items: start;
+}
+
+@media (max-width: 1280px) {
+    .painel-grade-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+        .painel-grade-3 > :last-child {
+            grid-column: 1 / -1;
+        }
+}
+
+@media (max-width: 992px) {
+    .painel-grade-3 {
+        grid-template-columns: 1fr;
+    }
+}
+
+.setores-grade.compacta {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+}
+
+/* ----- Recorrências registradas ----- */
+.recorrencias-filtros {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+    .recorrencias-filtros .span-2 {
+        grid-column: 1 / -1;
+    }
+
+.recorrencias-resumo {
+    margin: 0 0 8px;
+    font-size: .82rem;
+    color: var(--cor-texto-suave);
+}
+
+.recorrencias-lista {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 340px;
+    overflow-y: auto;
+}
+
+.recorrencia-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-pequeno);
+}
+
+.recorrencia-pergunta {
+    margin: 0 0 2px;
+    font-size: .88rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.recorrencia-meta {
+    margin: 0;
+    font-size: .78rem;
+    color: var(--cor-texto-suave);
+}
+
+.recorrencia-item .selo {
+    flex: none;
+}
+
+.recorrencias-estado {
+    margin: 0;
+    padding: 24px 8px;
+    text-align: center;
+    font-size: .88rem;
+    color: var(--cor-texto-suave);
+}
+
+    .recorrencias-estado.erro {
+        color: var(--cor-perigo-texto);
+    }
+
+/* ----- Atenção necessária (largura total) ----- */
+.alerta-lista-grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 12px;
+}
+
+.kpi-cartao .selo {
+    align-self: flex-start;
+}

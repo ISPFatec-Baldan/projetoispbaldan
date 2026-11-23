@@ -1,0 +1,344 @@
+﻿@model ProjetoISP.Baldan.Models.Checklist.PerguntasViewModel
+
+@{
+    ViewData["Title"] = "Perguntas";
+    Layout = "_LayoutISP";
+}
+
+@* Estilos só desta tela (carregam depois do isp.css) *@
+<link rel="stylesheet" href="~/css/perguntas.css" asp-append-version="true" />
+
+<partial name="_Mensagens" />
+
+<div class="pagina-topo">
+    <div>
+        <h1 class="pagina-titulo">Perguntas</h1>
+        <p class="pagina-sub">
+            @Model.TotalAtivas @(Model.TotalAtivas == 1 ? "pergunta ativa" : "perguntas ativas")
+            @if (Model.TotalDesativadas > 0)
+            {
+                <text>&middot; @Model.TotalDesativadas desativada(s)</text>
+            }
+        </p>
+    </div>
+
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrar">
+        + Cadastrar nova pergunta
+    </button>
+</div>
+
+<p class="modal-aviso mb-3">
+    Os checklists são respondidos <strong>por semana</strong>. Incluir ou retirar uma pergunta de um checklist
+    passa a valer <strong>@Model.TextoVigencia</strong>.
+</p>
+
+@* ===== Pesquisa e filtros ===== *@
+<form method="get" asp-action="Index" class="barra-filtros filtros-perguntas" id="formFiltros">
+    <div class="campo-busca">
+        <label for="busca" class="visually-hidden">Pesquisar pergunta</label>
+        <input id="busca" type="search" class="form-control" placeholder="Pesquisar pergunta..." autocomplete="off" />
+    </div>
+
+    <div class="filtros-selects">
+        <div class="filtro-ordem">
+            <label for="ordem">Ordenar:</label>
+            <select id="ordem" name="ordem" class="form-select">
+                <option value="recentes" selected="@(Model.Ordem == "recentes")">Mais recentes</option>
+                <option value="antigas" selected="@(Model.Ordem == "antigas")">Mais antigas</option>
+                <option value="alfabetica" selected="@(Model.Ordem == "alfabetica")">Ordem alfabética</option>
+            </select>
+        </div>
+
+        <div class="filtro-ordem">
+            <label for="situacao">Mostrar:</label>
+            <select id="situacao" name="situacao" class="form-select">
+                <option value="ativas" selected="@(Model.Situacao == "ativas")">Ativas</option>
+                <option value="aviso" selected="@(Model.Situacao == "aviso")">Com aviso de recorrência</option>
+                <option value="semchecklist" selected="@(Model.Situacao == "semchecklist")">Sem checklist</option>
+                <option value="desativadas" selected="@(Model.Situacao == "desativadas")">Desativadas</option>
+            </select>
+        </div>
+
+        <div class="filtro-ordem">
+            <label for="idChecklist">Checklist:</label>
+            <select id="idChecklist" name="idChecklist" class="form-select">
+                <option value="">Todos</option>
+                @foreach (var checklist in Model.Checklists)
+                {
+                    <option value="@checklist.Id" selected="@(Model.IdChecklist == checklist.Id)">@checklist.Nome</option>
+                }
+            </select>
+        </div>
+
+        <div class="filtro-ordem">
+            <label for="idTopico">Tópico:</label>
+            <select id="idTopico" name="idTopico" class="form-select">
+                <option value="">Todos</option>
+                @foreach (var topico in Model.Topicos)
+                {
+                    <option value="@topico.Id" selected="@(Model.IdTopico == topico.Id)">@topico.Nome</option>
+                }
+            </select>
+        </div>
+    </div>
+</form>
+
+@if (!Model.Perguntas.Any())
+{
+    <div class="painel vazio">
+        @(Model.TotalAtivas + Model.TotalDesativadas == 0
+            ? "Nenhuma pergunta cadastrada. Use \"Cadastrar nova pergunta\" para começar."
+            : "Nenhuma pergunta encontrada com esses filtros.")
+</div>
+}
+else
+{
+    <ul class="lista-perguntas" id="listaPerguntas">
+        @foreach (var linha in Model.Perguntas)
+        {
+            var item = linha.Item;
+            var idsMarcados = string.Join(",", linha.Vinculos.Where(v => v.Situacao != "saindo").Select(v => v.IdChecklist));
+            var nomesVinculados = string.Join("|", linha.Vinculos.Select(v => v.NomeChecklist));
+
+            <li class="pergunta @(item.Ativo ? "" : "pergunta-inativa")" data-texto="@item.DescricaoPergunta.ToLowerInvariant()">
+                <div class="pergunta-conteudo">
+                    <p class="pergunta-texto">@item.DescricaoPergunta</p>
+
+                    <div class="pergunta-meta">
+                        <span class="selo selo-neutro">@linha.NomeTopico</span>
+                        <span>v@item.Versao</span>
+                        <span>&middot; criada em @item.DataCriacao.ToDateTime().ToLocalTime().ToString("dd/MM/yyyy")</span>
+                        @if (!item.Ativo)
+                        {
+                            <span class="selo selo-neutro">Desativada</span>
+                        }
+                        @if (linha.AvisoNaoAplicavel)
+                        {
+                            <span class="selo selo-alerta" title="Considere revisar ou desativar esta pergunta.">
+                                <span aria-hidden="true">⚠</span>
+                                Não aplicável nos últimos @Model.UltimosChecklists checklists
+                            </span>
+                        }
+                    </div>
+
+                    <div class="chips pergunta-checklists">
+                        @if (!linha.Vinculos.Any())
+                        {
+                            <span class="chips-rotulo">Sem checklist</span>
+                        }
+                        else
+                        {
+                            @foreach (var vinculo in linha.Vinculos)
+                            {
+                                @if (vinculo.Situacao == "entrando")
+                                {
+                                    <span class="chip chip-entra" title="Começa a valer em @vinculo.Desde?.ToString("dd/MM/yyyy")">@vinculo.NomeChecklist &middot; entra @vinculo.Desde?.ToString("dd/MM")</span>
+                                }
+                                else if (vinculo.Situacao == "saindo")
+                                {
+                                    <span class="chip chip-sai" title="Sai do checklist em @vinculo.Ate?.ToString("dd/MM/yyyy")">@vinculo.NomeChecklist &middot; sai @vinculo.Ate?.ToString("dd/MM")</span>
+                                }
+                                else
+                                {
+                                    <span class="chip">@vinculo.NomeChecklist</span>
+                                }
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="pergunta-acoes">
+                    @if (item.Ativo)
+                    {
+                        <button type="button" class="btn-icone" title="Editar pergunta" aria-label="Editar pergunta"
+                                data-bs-toggle="modal" data-bs-target="#modalEditar"
+                                data-id="@item.Id" data-texto="@item.DescricaoPergunta"
+                                data-topico="@item.IdTopico" data-checklists="@idsMarcados">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M4 20l1-5L16 4l4 4L9 19z" />
+                                <path d="M14 6l4 4" />
+                            </svg>
+                        </button>
+                        <button type="button" class="btn-icone btn-icone-perigo" title="Excluir pergunta" aria-label="Excluir pergunta"
+                                data-bs-toggle="modal" data-bs-target="#modalRemover"
+                                data-id="@item.Id" data-texto="@item.DescricaoPergunta"
+                                data-modo="@(linha.EmUso ? "desativar" : "excluir")" data-nomes="@nomesVinculados">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+                                <path d="M6 6l12 12M18 6 6 18" />
+                            </svg>
+                        </button>
+                    }
+                    else
+                    {
+                        <form asp-action="Reativar" method="post">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Reativar</button>
+                        </form>
+                    }
+                </div>
+            </li>
+        }
+    </ul>
+
+    <p id="semResultados" class="vazio" hidden>Nenhuma pergunta encontrada para essa busca.</p>
+}
+
+@* ===== Janela: cadastrar nova pergunta ===== *@
+<div class="modal fade" id="modalCadastrar" tabindex="-1" aria-labelledby="tituloCadastrar" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <form class="modal-content" asp-action="Cadastrar" method="post">
+            <div class="modal-header">
+                <h2 class="modal-title" id="tituloCadastrar">Cadastrar nova pergunta</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <label for="cadTexto" class="form-label">Pergunta</label>
+                <textarea id="cadTexto" name="descricao" class="form-control" rows="3" maxlength="500" required></textarea>
+
+                <div class="row g-4 mt-1">
+                    <div class="col-md-7">
+                        <p class="form-label mb-1">Checklists da pergunta</p>
+                        <p class="texto-ajuda">Isso também pode ser feito depois, editando a pergunta.</p>
+                        <div class="lista-checklists">
+                            @if (!Model.Checklists.Any())
+                            {
+                                <span class="chips-rotulo">Nenhum checklist ativo cadastrado.</span>
+                            }
+                            @foreach (var checklist in Model.Checklists)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="idsChecklists" value="@checklist.Id" id="cad_@checklist.Id" />
+                                    <label class="form-check-label" for="cad_@checklist.Id">@checklist.Nome</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <label for="cadTopico" class="form-label">Tópico da pergunta</label>
+                        <div class="topico-linha">
+                            <select id="cadTopico" name="idTopico" class="form-select select-topico" required>
+                                <option value="">Selecione...</option>
+                                @foreach (var topico in Model.Topicos)
+                                {
+                                    <option value="@topico.Id">@topico.Nome</option>
+                                }
+                            </select>
+                            <button type="button" class="btn btn-outline-primary botao-novo-topico" title="Criar novo tópico" aria-label="Criar novo tópico">+</button>
+                        </div>
+                        <div class="novo-topico" hidden>
+                            <input type="text" class="form-control" maxlength="60" placeholder="Nome do novo tópico" aria-label="Nome do novo tópico" />
+                            <button type="button" class="btn btn-primary botao-criar-topico">Criar</button>
+                        </div>
+                        <p class="texto-erro" hidden></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Cadastrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* ===== Janela: editar pergunta ===== *@
+<div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="tituloEditar" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <form class="modal-content" asp-action="Alterar" method="post">
+            <input type="hidden" name="id" />
+            <div class="modal-header">
+                <h2 class="modal-title" id="tituloEditar">Editar pergunta</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <label for="editTexto" class="form-label">Pergunta</label>
+                <textarea id="editTexto" name="novoTexto" class="form-control" rows="3" maxlength="500" required></textarea>
+
+                <label for="editMotivo" class="form-label mt-3">Motivo da alteração do texto (opcional)</label>
+                <input id="editMotivo" name="motivo" class="form-control" maxlength="200" />
+
+                <div class="row g-4 mt-1">
+                    <div class="col-md-7">
+                        <p class="form-label mb-1">Checklists da pergunta</p>
+                        <p class="texto-ajuda">Incluir ou retirar vale @Model.TextoVigencia.</p>
+                        <div class="lista-checklists">
+                            @foreach (var checklist in Model.Checklists)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="idsChecklists" value="@checklist.Id" id="edit_@checklist.Id" />
+                                    <label class="form-check-label" for="edit_@checklist.Id">@checklist.Nome</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <label for="editTopico" class="form-label">Tópico da pergunta</label>
+                        <div class="topico-linha">
+                            <select id="editTopico" name="idTopico" class="form-select select-topico" required>
+                                <option value="">Selecione...</option>
+                                @foreach (var topico in Model.Topicos)
+                                {
+                                    <option value="@topico.Id">@topico.Nome</option>
+                                }
+                            </select>
+                            <button type="button" class="btn btn-outline-primary botao-novo-topico" title="Criar novo tópico" aria-label="Criar novo tópico">+</button>
+                        </div>
+                        <div class="novo-topico" hidden>
+                            <input type="text" class="form-control" maxlength="60" placeholder="Nome do novo tópico" aria-label="Nome do novo tópico" />
+                            <button type="button" class="btn btn-primary botao-criar-topico">Criar</button>
+                        </div>
+                        <p class="texto-erro" hidden></p>
+                    </div>
+                </div>
+
+                <p class="modal-aviso mt-3 mb-0">
+                    Mudar o <strong>texto</strong> cria uma nova versão da pergunta. As respostas já registradas
+                    continuam com o texto original.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Alterar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* ===== Janela: excluir pergunta ===== *@
+<div class="modal fade" id="modalRemover" tabindex="-1" aria-labelledby="tituloRemover" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" asp-action="Remover" method="post">
+            <input type="hidden" name="id" />
+            <div class="modal-header">
+                <h2 class="modal-title" id="tituloRemover">Deseja mesmo EXCLUIR a pergunta?</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p id="removerTexto" class="caixa-pergunta"></p>
+
+                <div class="mt-3">
+                    <p class="form-label mb-2">Ela também está vinculada a:</p>
+                    <div class="chips" id="removerChecklists"></div>
+                </div>
+
+                <p id="removerDesativar" class="modal-aviso mt-3 mb-0" hidden>
+                    Esta pergunta já foi usada. Ela será <strong>desativada</strong>: sai dos checklists
+                    @Model.TextoVigencia e continua no histórico das inspeções.
+                </p>
+                <p id="removerExcluir" class="modal-aviso mt-3 mb-0" hidden>
+                    Esta pergunta nunca valeu em um checklist. Ela será <strong>excluída definitivamente</strong>.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Voltar</button>
+                <button type="submit" class="btn btn-danger" id="botaoConfirmarRemover">Excluir</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/perguntas.js" asp-append-version="true" data-url-topico="@Url.Action("CriarTopico", "Perguntas")"></script>
+}

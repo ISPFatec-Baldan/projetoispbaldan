@@ -260,7 +260,9 @@ namespace ProjetoISP.Baldan.Controllers
             return snapshot.Documents.ToDictionary(d => d.Id, d =>
             {
                 var r = d.ConvertTo<ResultadoInspecao>();
-                var pergunta = itens.TryGetValue(r.IdItemChecklist ?? string.Empty, out var texto) ? texto : "?";
+                var pergunta = !string.IsNullOrEmpty(r.DescricaoPerguntaRegistrada)
+                    ? r.DescricaoPerguntaRegistrada
+                    : (itens.TryGetValue(r.IdItemChecklist ?? string.Empty, out var texto) ? texto : "?");
                 return $"{pergunta} — {r.RespostaColetada}";
             });
         }

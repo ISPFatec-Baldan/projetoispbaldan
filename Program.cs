@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
+using ProjetoISP.Baldan.Services;
 
 namespace TestAppMVC
 {
@@ -47,6 +48,11 @@ namespace TestAppMVC
                 ?? throw new InvalidOperationException(
                     "Firebase:ProjectId nao configurado no appsettings.json.");
             builder.Services.AddSingleton(_ => FirestoreDb.Create(projectId));
+
+            // Regras de recorrência (avisos das perguntas e, depois, o painel)
+            builder.Services.AddScoped<RecorrenciaService>();
+            builder.Services.AddScoped<PainelService>();
+            builder.Services.AddSingleton<VigenciaService>();
 
             var app = builder.Build();
 

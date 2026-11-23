@@ -2,75 +2,204 @@
 
 @{
     ViewData["Title"] = "Painel";
-    Layout = "_LayoutISP";   // usa a moldura do Figma só nesta tela (as demais continuam com o layout atual)
+    Layout = "_LayoutISP";   // moldura do ISP (menu escuro + paleta nova)
+
+    string Seta(ProjetoISP.Baldan.Models.Tendencia t) => t.Variacao > 0 ? "▲" : t.Variacao < 0 ? "▼" : "●";
+    string ClasseTendencia(ProjetoISP.Baldan.Models.Tendencia t) =>
+        t.Variacao == 0 ? "" : ((t.Variacao > 0) == t.AumentoEhBom ? "bom" : "ruim");
+    string TextoTendencia(ProjetoISP.Baldan.Models.Tendencia t) =>
+        $"{Seta(t)} {Math.Abs(t.Variacao):0.##} {t.Unidade} vs. {t.Referencia}".Replace("  ", " ");
+
+    var taxa = Model.TaxaConformidadeSemana;
 }
+
+@* Estilos só do painel (carregam depois do isp.css) *@
+<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+
+<div class="pagina-topo">
+    <div>
+        <h1 class="pagina-titulo">Painel</h1>
+        <p class="pagina-sub">Visão geral das inspeções, planos de ação e recorrências.</p>
+    </div>
+</div>
 
 @* ===== Indicadores ===== *@
 <section class="kpi-grade" aria-label="Indicadores">
-    <article class="kpi-cartao">
+    <a asp-controller="InspecoesISP" asp-action="Index" class="kpi-cartao">
+        <span class="kpi-rotulo">Taxa de conformidade da semana</span>
         @* Meta de 90% para ficar verde: ajuste conforme a regra da Baldan *@
-        <div class="kpi-valor @(Model.TaxaConformidadeSemana >= 90 ? "texto-ok" : "texto-ruim")">@($"{Model.TaxaConformidadeSemana:0}%")</div>
-        <div class="kpi-rotulo">Taxa de Conformidade<br />da Semana</div>
-    </article>
+        <span class="kpi-valor @(taxa is null ? "" : taxa >= 90 ? "texto-sucesso" : "texto-perigo")">@(taxa is { } valor ? $"{valor:0}%" : "—")</span>
+        @if (Model.TendenciaConformidade is { } t1)
+        {
+            <span class="kpi-tendencia @ClasseTendencia(t1)">@TextoTendencia(t1)</span>
+        }
+        else if (taxa is null)
+        {
 
-    <article class="kpi-cartao kpi-destaque">
-        <div class="kpi-valor">@Model.PlanosPendentesAnalise</div>
-        <div class="kpi-rotulo">Planos de Ação<br />Pendentes de Análise</div>
-    </article>
+            <span class="kpi-tendencia">Sem respostas nesta semana</span>
+        }
+    </a>
 
-    <article class="kpi-cartao">
-        <div class="kpi-valor texto-ruim">@Model.NaoConformidadesReincidentes</div>
-        <div class="kpi-rotulo">Não Conformidades<br />Reincidentes</div>
-    </article>
+    <a asp-controller="PlanoAcao5W2H" asp-action="Index" class="kpi-cartao kpi-destaque">
+        <span class="kpi-rotulo">Planos de ação pendentes de análise</span>
+        <span class="kpi-valor">@Model.PlanosPendentesAnalise</span>
+        @if (Model.TendenciaPlanos is { } t2)
+        {
+            <span class="kpi-tendencia">@TextoTendencia(t2)</span>
+        }
+        @if (Model.PlanosEGraficoSaoExemplo)
+        {
+            <span class="selo selo-neutro">Exemplo</span>
+        }
+    </a>
 
-    <article class="kpi-cartao">
-        <div class="kpi-valor">@Model.TotalInspecoesMes</div>
-        <div class="kpi-rotulo">Total de Inspeções<br />Realizadas no Mês</div>
-    </article>
+    <a asp-controller="ResultadoInspecao" asp-action="Index" class="kpi-cartao">
+        <span class="kpi-rotulo">Não conformidades reincidentes no mês</span>
+        <span class="kpi-valor @(Model.NaoConformidadesReincidentes > 0 ? "texto-perigo" : "")">@Model.NaoConformidadesReincidentes</span>
+        @if (Model.TendenciaReincidentes is { } t3)
+        {
+            <span class="kpi-tendencia @ClasseTendencia(t3)">@TextoTendencia(t3)</span>
+        }
+    </a>
+
+    <a asp-controller="InspecoesISP" asp-action="Index" class="kpi-cartao">
+        <span class="kpi-rotulo">Inspeções realizadas no mês</span>
+        <span class="kpi-valor">@Model.TotalInspecoesMes</span>
+        @if (Model.TendenciaInspecoes is { } t4)
+        {
+            <span class="kpi-tendencia @ClasseTendencia(t4)">@TextoTendencia(t4)</span>
+        }
+    </a>
 </section>
 
-<section class="painel-grade">
+@* ===== Linha 1: Setores | Recorrências | Gráfico ===== *@
+<div class="painel-grade-3">
 
-    @* ===== Checklists por setor ===== *@
-    <div class="painel-setores">
-        <h2 class="painel-titulo-pequeno">
-            Checklist realizados por setor da atual semana (@Model.ChecklistsRealizadosSemana):
-        </h2>
-        <ul class="lista-setores">
-            @foreach (var setor in Model.SetoresSemana)
+    @* ----- Checklists por setor ----- *@
+    <section class="painel" aria-labelledby="tituloSetores">
+        <div class="painel-cabecalho">
+            <div>
+                <h2 class="painel-titulo" id="tituloSetores">Checklists por setor na semana</h2>
+                <p class="painel-sub">@Model.ChecklistsRealizadosSemana de @Model.SetoresSemana.Count setores com checklist finalizado</p>
+            </div>
+        </div>
+
+        @if (!Model.SetoresSemana.Any())
+        {
+            <p class="vazio">
+                Nenhum setor com checklist vinculado.
+                Vincule setores aos checklists em <a asp-controller="ModeloChecklist" asp-action="Index">Checklists</a>.
+            </p>
+        }
+        else
+        {
+            <ul class="setores-grade compacta">
+                @foreach (var setor in Model.SetoresSemana)
+                {
+                    <li class="setor-selo @(setor.Ok ? "ok" : "pendente")">
+                        <span>@setor.Nome</span>
+                        <span class="setor-estado"><span aria-hidden="true">@(setor.Ok ? "✓" : "!")</span> @(setor.Ok ? "Em dia" : "Pendente")</span>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    @* ----- Recorrências registradas (funcional) ----- *@
+    <section class="painel" id="quadroRecorrencias" aria-labelledby="tituloRecorrencias"
+             data-url="@Url.Action("Recorrencias", "Home")">
+        <div class="painel-cabecalho">
+            <div>
+                <h2 class="painel-titulo" id="tituloRecorrencias">Recorrências registradas</h2>
+                <p class="painel-sub">Mesma pergunta reprovada em inspeções seguidas do setor.</p>
+            </div>
+            <button type="button" id="recLimpar" class="btn btn-sm btn-outline-secondary">Limpar</button>
+        </div>
+
+        <div class="recorrencias-filtros">
+            <div>
+                <label for="recDe" class="form-label">De</label>
+                <input type="date" id="recDe" class="form-control" />
+            </div>
+            <div>
+                <label for="recAte" class="form-label">Até</label>
+                <input type="date" id="recAte" class="form-control" />
+            </div>
+            <div class="span-2">
+                <label for="recSetor" class="form-label">Setor</label>
+                <select id="recSetor" class="form-select">
+                    <option value="">Todos os setores</option>
+                    @foreach (var setor in Model.SetoresFiltro)
+                    {
+                        <option value="@setor.Id">@setor.Nome</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <p id="recResumo" class="recorrencias-resumo" aria-live="polite"></p>
+        <ul id="recLista" class="recorrencias-lista"></ul>
+        <p id="recEstado" class="recorrencias-estado" aria-live="polite">Carregando...</p>
+    </section>
+
+    @* ----- Status de ações (rosca) ----- *@
+    <section class="painel" aria-labelledby="tituloGrafico">
+        <div class="painel-cabecalho">
+            <div>
+                <h2 class="painel-titulo" id="tituloGrafico">
+                    Status de ações ISP
+                    @if (Model.PlanosEGraficoSaoExemplo)
+                    {
+                        <span class="selo selo-neutro ms-2">Exemplo</span>
+                    }
+                </h2>
+                <p class="painel-sub">@Model.PeriodoComparativo</p>
+            </div>
+            <div class="periodo-chips" role="group" aria-label="Período">
+                <button type="button" aria-pressed="true">Semana</button>
+                <button type="button" aria-pressed="false">Mês</button>
+                <button type="button" aria-pressed="false">Trimestre</button>
+            </div>
+        </div>
+        <div class="grafico-area">
+            <canvas id="graficoStatusAcoes" role="img" aria-label="Gráfico em rosca com o status das ações ISP"></canvas>
+        </div>
+    </section>
+</div>
+
+@* ===== Linha 2: Atenção necessária (largura total) ===== *@
+<section class="painel" aria-labelledby="tituloAtencao">
+    <div class="painel-cabecalho">
+        <div>
+            <h2 class="painel-titulo" id="tituloAtencao">Atenção necessária</h2>
+            <p class="painel-sub">Itens que pedem uma ação sua, calculados com os dados atuais.</p>
+        </div>
+    </div>
+
+    @if (!Model.Alertas.Any())
+    {
+        <p class="vazio">Nada pendente por aqui.</p>
+    }
+    else
+    {
+        <ul class="alerta-lista alerta-lista-grade">
+            @foreach (var alerta in Model.Alertas)
             {
                 <li>
-                    <span>@setor.Nome</span>
-                    <span class="bolinha @(setor.Ok ? "ok" : "ruim")" role="img"
-                          aria-label="@(setor.Ok ? "sem pendência" : "com pendência")"></span>
+                    <a asp-controller="@alerta.Controlador" asp-action="Index" class="alerta-item @alerta.Tom">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 3 2 20h20L12 3z" />
+                            <path d="M12 10v4M12 17h.01" />
+                        </svg>
+                        <div>
+                            <p class="alerta-titulo">@alerta.Titulo</p>
+                            <p class="alerta-detalhe">@alerta.Detalhe</p>
+                        </div>
+                    </a>
                 </li>
             }
         </ul>
-    </div>
-
-    @* ===== Filtros de recorrência (visuais; ainda sem ação) ===== *@
-    <div class="painel-filtros">
-        <label for="filtroPeriodo" class="painel-titulo-pequeno">Recorrências registradas por período:</label>
-        <input type="date" id="filtroPeriodo" class="form-control form-control-sm filtro-campo" />
-
-        <label for="filtroSetor" class="painel-titulo-pequeno">Recorrências registradas por setor:</label>
-        <select id="filtroSetor" class="form-select form-select-sm filtro-campo">
-            <option value="">Selecione</option>
-            @foreach (var setor in Model.SetoresSemana)
-            {
-                <option value="@setor.Nome">@setor.Nome</option>
-            }
-        </select>
-    </div>
-
-    @* ===== Gráfico de pizza ===== *@
-    <div class="painel-grafico">
-        <h2 class="painel-titulo">Status de Ações ISP - Comparativo</h2>
-        <p class="painel-subtitulo">@Model.PeriodoComparativo</p>
-        <div class="grafico-area">
-            <canvas id="graficoStatusAcoes" role="img" aria-label="Gráfico de pizza com o status das ações ISP"></canvas>
-        </div>
-    </div>
+    }
 </section>
 
 @section Scripts {
@@ -84,4 +213,5 @@
         });
 </script>
 <script src="~/js/dashboard.js" asp-append-version="true"></script>
+<script src="~/js/recorrencias.js" asp-append-version="true"></script>
 }

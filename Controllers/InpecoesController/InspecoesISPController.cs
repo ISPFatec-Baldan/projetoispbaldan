@@ -11,8 +11,8 @@ namespace ProjetoISP.Baldan.Controllers
     public class InspecoesISPController : Controller
     {
         // Status usados no fluxo da inspeção. Ajuste os textos se a Baldan usar outros.
-        private const string StatusEmAndamento = "Em andamento";
-        private static readonly string[] StatusDisponiveis = { StatusEmAndamento, "Finalizada", "Cancelada" };
+        private const string StatusEmAndamento = StatusInspecao.EmAndamento;
+        private static readonly string[] StatusDisponiveis = StatusInspecao.Todos;
 
         private readonly FirestoreDb _db;
 

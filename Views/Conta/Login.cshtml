@@ -3,25 +3,27 @@
     Layout = "_LayoutLogin";
 }
 
-<a asp-controller="Conta" asp-action="Entrar" asp-route-returnUrl="@ViewBag.ReturnUrl"
-   class="login-cartao" aria-label="Fazer login com a conta Microsoft da empresa">
+<section class="login-cartao">
+    <span class="login-logo-pequeno" aria-hidden="true">
+        <svg viewBox="0 0 40 30" width="22" height="17" fill="none" stroke="#E30613" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 4l11 11L3 26" />
+            <path d="M20 4l11 11-11 11" />
+        </svg>
+        BALDAN
+    </span>
 
-    @* Logo da Microsoft (4 quadrados) *@
-    <svg class="login-ms" viewBox="0 0 28 28" fill="#000" aria-hidden="true">
-        <rect x="0" y="0" width="13" height="13" />
-        <rect x="15" y="0" width="13" height="13" />
-        <rect x="0" y="15" width="13" height="13" />
-        <rect x="15" y="15" width="13" height="13" />
-    </svg>
+    <h1 class="login-titulo">Faça login com seu email da empresa</h1>
+    <p class="login-texto">Use a conta Microsoft da Baldan para acessar o ISP.</p>
 
-    <div class="login-texto">
-        <p>Faça login com seu<br />email da empresa</p>
-        <span class="login-logo-pequeno">
-            <svg viewBox="0 0 40 30" width="18" height="14" fill="none" stroke="#e30613" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3 4l11 11L3 26" />
-                <path d="M20 4l11 11-11 11" />
-            </svg>
-            BALDAN
-        </span>
-    </div>
-</a>
+    <a asp-controller="Conta" asp-action="Entrar" asp-route-returnUrl="@ViewBag.ReturnUrl"
+       class="login-botao" aria-label="Entrar com a conta Microsoft da empresa">
+        @* Logo da Microsoft (4 quadrados, cores oficiais) *@
+        <svg class="login-ms" viewBox="0 0 21 21" aria-hidden="true">
+            <rect x="0" y="0" width="10" height="10" fill="#F25022" />
+            <rect x="11" y="0" width="10" height="10" fill="#7FBA00" />
+            <rect x="0" y="11" width="10" height="10" fill="#00A4EF" />
+            <rect x="11" y="11" width="10" height="10" fill="#FFB900" />
+        </svg>
+        Entrar com Microsoft
+    </a>
+</section>
