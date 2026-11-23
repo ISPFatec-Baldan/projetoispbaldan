@@ -1,22 +1,24 @@
-﻿// Menu lateral: abre/fecha pelo botão de 3 linhas, fecha com Esc ou clicando fora.
+﻿// Menu lateral: o botão de 3 linhas recolhe (só ícones) ou expande (ícones e nomes).
+// A escolha fica guardada neste navegador.
 (function () {
     const botao = document.getElementById('botaoMenu');
-    const menu = document.getElementById('menuIsp');
-    if (!botao || !menu) return;
+    if (!botao) return;
 
-    function alternar(abrir) {
-        const aberto = abrir === undefined ? !menu.classList.contains('aberto') : abrir;
-        menu.classList.toggle('aberto', aberto);
-        botao.setAttribute('aria-expanded', String(aberto));
+    const chave = 'ispMenuRecolhido';
+
+    function aplicar(recolhido) {
+        document.body.classList.toggle('recolhida', recolhido);
+        botao.setAttribute('aria-expanded', String(!recolhido));
+        botao.setAttribute('aria-label', recolhido ? 'Expandir menu' : 'Recolher menu');
     }
 
-    botao.addEventListener('click', function () { alternar(); });
+    let recolhido = false;
+    try { recolhido = localStorage.getItem(chave) === '1'; } catch (e) { /* ignora */ }
+    aplicar(recolhido);
 
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') alternar(false);
-    });
-
-    document.addEventListener('click', function (e) {
-        if (!menu.contains(e.target) && !botao.contains(e.target)) alternar(false);
+    botao.addEventListener('click', function () {
+        recolhido = !document.body.classList.contains('recolhida');
+        aplicar(recolhido);
+        try { localStorage.setItem(chave, recolhido ? '1' : '0'); } catch (e) { /* ignora */ }
     });
 })();

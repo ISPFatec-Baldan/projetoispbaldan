@@ -1,0 +1,84 @@
+﻿@model IEnumerable<ProjetoISP.Baldan.Models.Checklist.ModeloChecklist>
+
+@{
+    ViewData["Title"] = "Checklists";
+    Layout = "_LayoutISP";
+    var nomesCategorias = (Dictionary<string, string>)ViewBag.NomesCategorias;
+    var setoresPorModelo = (Dictionary<string, List<string>>)ViewBag.SetoresPorModelo;
+}
+
+<div class="pagina-topo">
+    <div>
+        <h1 class="pagina-titulo">Checklists</h1>
+        <p class="pagina-sub">Modelos de checklist e os setores onde são aplicados.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">+ Novo checklist</a>
+</div>
+
+<partial name="_Mensagens" />
+
+<div class="painel p-0">
+    @if (!Model.Any())
+    {
+        <p class="vazio">Nenhum checklist cadastrado. Crie uma categoria e depois o primeiro checklist.</p>
+    }
+    else
+    {
+        <table class="tabela-isp">
+            <thead>
+                <tr>
+                    <th>Checklist</th>
+                    <th>Categoria</th>
+                    <th>Status</th>
+                    <th>Aplicado em</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var setores = setoresPorModelo.TryGetValue(item.Id ?? "", out var lista) ? lista : new List<string>();
+                    <tr>
+                        <td>
+                            <a asp-controller="Perguntas" asp-action="Index" asp-route-idChecklist="@item.Id"
+                               class="fw-semibold text-decoration-none">@item.Nome</a>
+                            <span class="selo selo-neutro ms-2">v@item.Versao</span>
+                        </td>
+                        <td>@(nomesCategorias.TryGetValue(item.IdCategoria ?? "", out var categoria) ? categoria : "—")</td>
+                        <td>
+                            <span class="selo @(item.Status == "Ativo" ? "selo-sucesso" : "selo-neutro")">@item.Status</span>
+                        </td>
+                        <td>
+                            @if (!setores.Any())
+                            {
+                                <span class="text-muted">Nenhum setor</span>
+                            }
+                            else
+                            {
+                                <div class="chips">
+                                    @foreach (var nome in setores.Take(3))
+                                    {
+                                        <span class="chip">@nome</span>
+                                    }
+                                    @if (setores.Count > 3)
+                                    {
+                                        <span class="chip">+@(setores.Count - 3)</span>
+                                    }
+                                </div>
+                            }
+                        </td>
+                        <td class="acoes">
+                            <a asp-controller="Perguntas" asp-action="Index" asp-route-idChecklist="@item.Id"
+                               class="btn btn-sm btn-primary">Editar perguntas</a>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Editar</a>
+                            <form asp-action="Excluir" asp-route-id="@item.Id" method="post" class="d-inline"
+                                  onsubmit="return confirm('Excluir este checklist?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

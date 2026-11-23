@@ -3,11 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using ProjetoISP.Baldan.Models.Checklist;
 using ProjetoISP.Baldan.Models.Inspecoes;
+using ProjetoISP.Baldan.Models.Setores;
 
 namespace ProjetoISP.Baldan.Controllers
 {
     public class ModeloChecklistController : Controller
     {
+        private static readonly string[] StatusDisponiveis = { "Ativo", "Inativo" };
+
         private readonly FirestoreDb _db;
 
         public ModeloChecklistController(FirestoreDb db)
@@ -17,7 +20,7 @@ namespace ProjetoISP.Baldan.Controllers
 
         private CollectionReference Colecao => _db.Collection(Colecoes.ModelosChecklist);
 
-        // GET: ModeloChecklist
+        // GET: ModeloChecklist  (lista de checklists; daqui se chega na tela "Editar Checklist")
         public async Task<IActionResult> Index()
         {
             var snapshot = await Colecao.GetSnapshotAsync();
@@ -26,42 +29,57 @@ namespace ProjetoISP.Baldan.Controllers
                 .OrderBy(m => m.Nome)
                 .ToList();
 
-            ViewBag.NomesCategorias = await NomesCategoriasAsync();
+            var categorias = await _db.Collection(Colecoes.Categorias).GetSnapshotAsync();
+            ViewBag.NomesCategorias = categorias.Documents.ToDictionary(d => d.Id, d => d.ConvertTo<Categoria>().Nome);
+
+            // modelo -> nomes dos setores onde é aplicado
+            var setores = await _db.Collection(Colecoes.Setores).GetSnapshotAsync();
+            var nomesSetores = setores.Documents.ToDictionary(d => d.Id, d => d.ConvertTo<SetorArea>().Nome);
+
+            var vinculos = await _db.Collection(Colecoes.ModelosSetores).GetSnapshotAsync();
+            ViewBag.SetoresPorModelo = vinculos.Documents
+                .Select(d => d.ConvertTo<ModeloChecklistSetor>())
+                .Where(v => nomesSetores.ContainsKey(v.IdSetor))
+                .GroupBy(v => v.IdModeloChecklist)
+                .ToDictionary(g => g.Key, g => g.Select(v => nomesSetores[v.IdSetor]).OrderBy(n => n).ToList());
+
             return View(modelos);
-        }
-
-        // GET: ModeloChecklist/Details/abc123
-        public async Task<IActionResult> Details(string id)
-        {
-            var modelo = await ObterAsync(id);
-            if (modelo == null) return NotFound();
-
-            ViewBag.NomeCategoria = await NomeCategoriaAsync(modelo.IdCategoria);
-            return View(modelo);
         }
 
         // GET: ModeloChecklist/Create
         public async Task<IActionResult> Create()
         {
-            await CarregarCategoriasAsync();
+            await CarregarListasAsync(null, new HashSet<string>());
             return View();
         }
 
         // POST: ModeloChecklist/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Nome,Versao,Status,IdCategoria")] ModeloChecklist modelo)
+        public async Task<IActionResult> Create(
+            [Bind("Nome,Versao,Status,IdCategoria")] ModeloChecklist modelo, string[]? idsSetores)
         {
-            await ValidarCategoriaAsync(modelo);
+            var setoresValidos = await FiltrarSetoresExistentesAsync(idsSetores);
+            await ValidarAsync(modelo);
 
             if (!ModelState.IsValid)
             {
-                await CarregarCategoriasAsync(modelo.IdCategoria);
+                await CarregarListasAsync(modelo, setoresValidos);
                 return View(modelo);
             }
 
             modelo.DataCriacao = Timestamp.GetCurrentTimestamp();
-            await Colecao.AddAsync(modelo);
+
+            var batch = _db.StartBatch();
+            var documento = Colecao.Document();
+            batch.Create(documento, modelo);
+            foreach (var idSetor in setoresValidos)
+            {
+                batch.Create(_db.Collection(Colecoes.ModelosSetores).Document(),
+                    new ModeloChecklistSetor { IdModeloChecklist = documento.Id, IdSetor = idSetor });
+            }
+            await batch.CommitAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -71,25 +89,27 @@ namespace ProjetoISP.Baldan.Controllers
             var modelo = await ObterAsync(id);
             if (modelo == null) return NotFound();
 
-            await CarregarCategoriasAsync(modelo.IdCategoria);
+            await CarregarListasAsync(modelo, await IdsSetoresDoModeloAsync(id));
             return View(modelo);
         }
 
         // POST: ModeloChecklist/Edit/abc123
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Id,Nome,Versao,Status,IdCategoria")] ModeloChecklist modelo)
+        public async Task<IActionResult> Edit(
+            string id, [Bind("Id,Nome,Versao,Status,IdCategoria")] ModeloChecklist modelo, string[]? idsSetores)
         {
             if (id != modelo.Id) return NotFound();
 
             var existente = await ObterAsync(id);
             if (existente == null) return NotFound();
 
-            await ValidarCategoriaAsync(modelo);
+            var setoresValidos = await FiltrarSetoresExistentesAsync(idsSetores);
+            await ValidarAsync(modelo);
 
             if (!ModelState.IsValid)
             {
-                await CarregarCategoriasAsync(modelo.IdCategoria);
+                await CarregarListasAsync(modelo, setoresValidos);
                 return View(modelo);
             }
 
@@ -99,28 +119,22 @@ namespace ProjetoISP.Baldan.Controllers
             existente.Status = modelo.Status;
             existente.IdCategoria = modelo.IdCategoria;
 
-            await Colecao.Document(id).SetAsync(existente);
+            var batch = _db.StartBatch();
+            batch.Set(Colecao.Document(id), existente);
+            await SincronizarVinculosAsync(batch, id, setoresValidos);
+            await batch.CommitAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: ModeloChecklist/Delete/abc123
-        public async Task<IActionResult> Delete(string id)
-        {
-            var modelo = await ObterAsync(id);
-            if (modelo == null) return NotFound();
-
-            ViewBag.NomeCategoria = await NomeCategoriaAsync(modelo.IdCategoria);
-            return View(modelo);
-        }
-
-        // POST: ModeloChecklist/Delete/abc123
-        [HttpPost, ActionName("Delete")]
+        // POST: ModeloChecklist/Excluir/abc123
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
+        public async Task<IActionResult> Excluir(string id)
         {
-            var itens = await _db.Collection(Colecoes.ItensChecklist)
-                .WhereEqualTo(nameof(ItemChecklist.IdModeloChecklist), id)
-                .Limit(1)
+            var itens = await _db.Collection(Colecoes.ChecklistPerguntas)
+                .WhereEqualTo(nameof(ChecklistPergunta.IdModeloChecklist), id)
+                            .Limit(1)
                 .GetSnapshotAsync();
 
             var inspecoes = await _db.Collection(Colecoes.Inspecoes)
@@ -130,11 +144,20 @@ namespace ProjetoISP.Baldan.Controllers
 
             if (itens.Count > 0 || inspecoes.Count > 0)
             {
-                TempData["Erro"] = "Não é possível excluir: existem itens ou inspeções vinculados a este modelo.";
+                TempData["Erro"] = "Não é possível excluir: o checklist tem perguntas ou inspeções vinculadas.";
                 return RedirectToAction(nameof(Index));
             }
 
-            await Colecao.Document(id).DeleteAsync();
+            // Sem perguntas nem inspeções: remove também os vínculos com setores
+            var vinculos = await _db.Collection(Colecoes.ModelosSetores)
+                .WhereEqualTo(nameof(ModeloChecklistSetor.IdModeloChecklist), id)
+                .GetSnapshotAsync();
+
+            var batch = _db.StartBatch();
+            foreach (var doc in vinculos.Documents) batch.Delete(doc.Reference);
+            batch.Delete(Colecao.Document(id));
+            await batch.CommitAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -148,33 +171,70 @@ namespace ProjetoISP.Baldan.Controllers
             return snapshot.Exists ? snapshot.ConvertTo<ModeloChecklist>() : null;
         }
 
-        private async Task<Dictionary<string, string>> NomesCategoriasAsync()
+        private async Task<HashSet<string>> IdsSetoresDoModeloAsync(string idModelo)
         {
-            var snapshot = await _db.Collection(Colecoes.Categorias).GetSnapshotAsync();
-            return snapshot.Documents.ToDictionary(d => d.Id, d => d.ConvertTo<Categoria>().Nome);
+            var vinculos = await _db.Collection(Colecoes.ModelosSetores)
+                .WhereEqualTo(nameof(ModeloChecklistSetor.IdModeloChecklist), idModelo)
+                .GetSnapshotAsync();
+            return vinculos.Documents.Select(d => d.ConvertTo<ModeloChecklistSetor>().IdSetor).ToHashSet();
         }
 
-        private async Task<string> NomeCategoriaAsync(string? idCategoria)
+        // Só aceita IDs de setores que existem de verdade
+        private async Task<HashSet<string>> FiltrarSetoresExistentesAsync(string[]? idsSetores)
         {
-            if (string.IsNullOrEmpty(idCategoria)) return "—";
+            if (idsSetores == null || idsSetores.Length == 0) return new HashSet<string>();
 
-            var snapshot = await _db.Collection(Colecoes.Categorias).Document(idCategoria).GetSnapshotAsync();
-            return snapshot.Exists ? snapshot.ConvertTo<Categoria>().Nome : "—";
+            var snapshot = await _db.Collection(Colecoes.Setores).GetSnapshotAsync();
+            var existentes = snapshot.Documents.Select(d => d.Id).ToHashSet();
+            return idsSetores.Where(existentes.Contains).ToHashSet();
         }
 
-        private async Task CarregarCategoriasAsync(string? selecionada = null)
+        // Deixa os vínculos do modelo exatamente iguais à seleção: apaga os removidos e cria os novos
+        private async Task SincronizarVinculosAsync(WriteBatch batch, string idModelo, HashSet<string> selecionados)
         {
-            var snapshot = await _db.Collection(Colecoes.Categorias).GetSnapshotAsync();
-            var categorias = snapshot.Documents
+            var vinculos = await _db.Collection(Colecoes.ModelosSetores)
+                .WhereEqualTo(nameof(ModeloChecklistSetor.IdModeloChecklist), idModelo)
+                .GetSnapshotAsync();
+
+            var jaVinculados = new HashSet<string>();
+            foreach (var doc in vinculos.Documents)
+            {
+                var idSetor = doc.ConvertTo<ModeloChecklistSetor>().IdSetor;
+                if (!selecionados.Contains(idSetor) || !jaVinculados.Add(idSetor))
+                    batch.Delete(doc.Reference);
+            }
+
+            foreach (var idSetor in selecionados.Where(s => !jaVinculados.Contains(s)))
+            {
+                batch.Create(_db.Collection(Colecoes.ModelosSetores).Document(),
+                    new ModeloChecklistSetor { IdModeloChecklist = idModelo, IdSetor = idSetor });
+            }
+        }
+
+        private async Task CarregarListasAsync(ModeloChecklist? modelo, HashSet<string> setoresSelecionados)
+        {
+            var categoriasSnap = await _db.Collection(Colecoes.Categorias).GetSnapshotAsync();
+            var categorias = categoriasSnap.Documents
                 .Select(d => d.ConvertTo<Categoria>())
                 .OrderBy(c => c.Nome)
                 .ToList();
+            ViewBag.Categorias = new SelectList(categorias, nameof(Categoria.Id), nameof(Categoria.Nome), modelo?.IdCategoria);
 
-            ViewBag.Categorias = new SelectList(categorias, nameof(Categoria.Id), nameof(Categoria.Nome), selecionada);
+            var setoresSnap = await _db.Collection(Colecoes.Setores).GetSnapshotAsync();
+            ViewBag.SetoresDisponiveis = setoresSnap.Documents
+                .Select(d => d.ConvertTo<SetorArea>())
+                .OrderBy(s => s.Nome)
+                .ToList();
+            ViewBag.SetoresSelecionados = setoresSelecionados;
+
+            ViewBag.StatusLista = new SelectList(StatusDisponiveis, modelo?.Status);
         }
 
-        private async Task ValidarCategoriaAsync(ModeloChecklist modelo)
+        private async Task ValidarAsync(ModeloChecklist modelo)
         {
+            if (!StatusDisponiveis.Contains(modelo.Status))
+                ModelState.AddModelError(nameof(ModeloChecklist.Status), "Status inválido.");
+
             if (string.IsNullOrEmpty(modelo.IdCategoria)) return;
 
             var snapshot = await _db.Collection(Colecoes.Categorias).Document(modelo.IdCategoria).GetSnapshotAsync();

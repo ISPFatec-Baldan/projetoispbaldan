@@ -1,4 +1,11 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var controlador = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    string Ativo(params string[] nomes) =>
+        nomes.Contains(controlador, StringComparer.OrdinalIgnoreCase) ? "ativo" : "";
+    var cadastrosAbertos = new[] { "Unidades", "SetorArea", "Usuario", "Categoria" }
+        .Contains(controlador, StringComparer.OrdinalIgnoreCase);
+}
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
@@ -10,63 +17,78 @@
 <body class="isp">
     <div class="isp-moldura">
 
-        @* ===== Barra lateral (ícones) ===== *@
-        <aside class="isp-lateral">
-            <button type="button" id="botaoMenu" class="isp-icone" title="Menu" aria-label="Abrir menu"
-                    aria-controls="menuIsp" aria-expanded="false">
-                <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" aria-hidden="true">
-                    <path d="M4 8h28M4 18h28M4 28h28" />
-                </svg>
-            </button>
+        @* ===== Menu lateral (escuro, com nomes; o botão recolhe para só ícones) ===== *@
+        <aside class="isp-lateral" aria-label="Menu principal">
+            <div class="isp-lateral-topo">
+                <span class="isp-lateral-marca">Menu</span>
+                <button type="button" id="botaoMenu" class="botao-menu" aria-label="Recolher menu" aria-expanded="true">
+                    <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true">
+                        <path d="M5 9h26M5 18h26M5 27h26" />
+                    </svg>
+                </button>
+            </div>
 
-            <a asp-controller="Home" asp-action="Index" class="isp-icone" title="Início" aria-label="Início">
-                <svg viewBox="0 0 36 36" fill="currentColor" aria-hidden="true">
-                    <path d="M18 3 2 17h5v15h8V22h6v10h8V17h5z" />
+            <a asp-controller="Home" asp-action="Index" class="item-menu @Ativo("Home")" title="Painel">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 11.5 12 4l9 7.5" />
+                    <path d="M5 10v10h5v-6h4v6h5V10" />
                 </svg>
+                <span class="rotulo">Painel</span>
             </a>
 
-            <a asp-controller="InspecoesISP" asp-action="Index" class="isp-icone" title="Inspeções" aria-label="Inspeções">
-                <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M5 31l2-8L25 5l6 6-18 18z" />
-                    <path d="M22 8l6 6" />
+            <a asp-controller="InspecoesISP" asp-action="Index" class="item-menu @Ativo("InspecoesISP", "ResultadoInspecao")" title="Inspeções">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M4 20l1-5L16 4l4 4L9 19z" />
+                    <path d="M14 6l4 4" />
                 </svg>
+                <span class="rotulo">Inspeções</span>
             </a>
 
-            <a asp-controller="ModeloChecklist" asp-action="Index" class="isp-icone" title="Checklists" aria-label="Checklists">
-                <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="7" y="4" width="22" height="28" rx="3" />
-                    <path d="M12 11h12M12 16h12" />
-                    <path d="m13 25 3 3 7-7" />
+            <a asp-controller="ModeloChecklist" asp-action="Index" class="item-menu @Ativo("ModeloChecklist")" title="Checklists">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="5" y="3" width="14" height="18" rx="2" />
+                    <path d="M9 8h6M9 12h6" />
+                    <path d="m9 17 2 2 4-4" />
                 </svg>
+                <span class="rotulo">Checklists</span>
             </a>
 
-            <a asp-controller="PlanoAcao5W2H" asp-action="Index" class="isp-icone" title="Planos de ação" aria-label="Planos de ação">
-                <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.8" aria-hidden="true">
-                    <circle cx="18" cy="18" r="14" />
-                    <circle cx="18" cy="18" r="8" />
-                    <circle cx="18" cy="18" r="2.5" fill="currentColor" />
+            <a asp-controller="Perguntas" asp-action="Index" class="item-menu @Ativo("Perguntas", "ItemChecklist")" title="Perguntas">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7" />
+                    <path d="M12 17h.01" />
                 </svg>
+                <span class="rotulo">Perguntas</span>
             </a>
+
+            <a asp-controller="PlanoAcao5W2H" asp-action="Index" class="item-menu @Ativo("PlanoAcao5W2H", "HistoricoPrazo5W2H")" title="Planos de ação">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" />
+                    <circle cx="12" cy="12" r="5" />
+                    <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+                </svg>
+                <span class="rotulo">Planos de ação</span>
+            </a>
+
+            <details open="@cadastrosAbertos">
+                <summary title="Cadastros">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <ellipse cx="12" cy="6" rx="8" ry="3" />
+                        <path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6" />
+                        <path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" />
+                    </svg>
+                    <span class="rotulo">Cadastros</span>
+                    <svg class="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+                </summary>
+                <div class="submenu">
+                    <a asp-controller="Unidades" asp-action="Index" class="item-menu @Ativo("Unidades")">Unidades</a>
+                    <a asp-controller="SetorArea" asp-action="Index" class="item-menu @Ativo("SetorArea")">Setores</a>
+                    <a asp-controller="Usuario" asp-action="Index" class="item-menu @Ativo("Usuario")">Usuários</a>
+                    <a asp-controller="Categoria" asp-action="Index" class="item-menu @Ativo("Categoria")">Categorias</a>
+                </div>
+            </details>
         </aside>
-
-        @* ===== Menu completo (abre pelo botão de 3 linhas) ===== *@
-        <nav id="menuIsp" class="isp-menu" aria-label="Menu principal">
-            <h2 class="isp-menu-titulo">Cadastros</h2>
-            <a asp-controller="Unidades" asp-action="Index">Unidades</a>
-            <a asp-controller="SetorArea" asp-action="Index">Setores</a>
-            <a asp-controller="Usuario" asp-action="Index">Usuários</a>
-            <a asp-controller="Categoria" asp-action="Index">Categorias</a>
-            <a asp-controller="ModeloChecklist" asp-action="Index">Modelos de checklist</a>
-            <a asp-controller="ItemChecklist" asp-action="Index">Itens de checklist</a>
-
-            <h2 class="isp-menu-titulo">Inspeções</h2>
-            <a asp-controller="InspecoesISP" asp-action="Index">Inspeções</a>
-            <a asp-controller="ResultadoInspecao" asp-action="Index">Resultados</a>
-
-            <h2 class="isp-menu-titulo">Planos de ação</h2>
-            <a asp-controller="PlanoAcao5W2H" asp-action="Index">Planos de ação (5W2H)</a>
-            <a asp-controller="HistoricoPrazo5W2H" asp-action="Index">Histórico de prazos</a>
-        </nav>
 
         <div class="isp-principal">
 
@@ -75,7 +97,7 @@
                 @* Troque este bloco pela imagem do logo quando tiver o arquivo:
                    <img src="~/img/logo-baldan-isp.png" alt="Baldan ISP" height="40" /> *@
                 <a asp-controller="Home" asp-action="Index" class="isp-logo" aria-label="Baldan ISP">
-                    <svg viewBox="0 0 40 30" width="34" height="26" fill="none" stroke="#e30613" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg viewBox="0 0 40 30" width="34" height="26" fill="none" stroke="#E30613" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M3 4l11 11L3 26" />
                         <path d="M20 4l11 11-11 11" />
                     </svg>

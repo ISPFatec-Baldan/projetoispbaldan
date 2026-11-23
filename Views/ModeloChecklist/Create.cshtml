@@ -1,0 +1,78 @@
+﻿@model ProjetoISP.Baldan.Models.Checklist.ModeloChecklist
+
+@{
+    ViewData["Title"] = "Novo checklist";
+    Layout = "_LayoutISP";
+    var setoresDisponiveis = (List<ProjetoISP.Baldan.Models.Setores.SetorArea>)ViewBag.SetoresDisponiveis;
+    var setoresSelecionados = (HashSet<string>)ViewBag.SetoresSelecionados;
+}
+
+<div class="pagina-topo">
+    <h1 class="pagina-titulo">Novo checklist</h1>
+</div>
+
+<div class="painel" style="max-width: 640px;">
+    <form asp-action="Create">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+
+        <div class="mb-3">
+            <label asp-for="Nome" class="form-label">Nome do checklist</label>
+            <input asp-for="Nome" class="form-control" />
+            <span asp-validation-for="Nome" class="text-danger"></span>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-4 mb-3">
+                <label asp-for="Versao" class="form-label">Versão</label>
+                <input asp-for="Versao" class="form-control" placeholder="1.0" />
+                <span asp-validation-for="Versao" class="text-danger"></span>
+            </div>
+            <div class="col-sm-8 mb-3">
+                <label asp-for="Status" class="form-label">Status</label>
+                <select asp-for="Status" asp-items="(SelectList)ViewBag.StatusLista" class="form-select">
+                    <option value="">Selecione...</option>
+                </select>
+                <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="IdCategoria" class="form-label">Categoria</label>
+            <select asp-for="IdCategoria" asp-items="(SelectList)ViewBag.Categorias" class="form-select">
+                <option value="">Selecione...</option>
+            </select>
+            <span asp-validation-for="IdCategoria" class="text-danger"></span>
+        </div>
+
+        <fieldset class="mb-4">
+            <legend class="form-label">Setores onde este checklist é aplicado</legend>
+            @if (!setoresDisponiveis.Any())
+            {
+                <p class="text-muted mb-0">Nenhum setor cadastrado ainda.</p>
+            }
+            else
+            {
+                <div class="row g-2">
+                    @foreach (var setor in setoresDisponiveis)
+                    {
+                        <div class="col-sm-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="idsSetores" value="@setor.Id"
+                                       id="setor_@setor.Id" checked="@setoresSelecionados.Contains(setor.Id ?? "")" />
+                                <label class="form-check-label" for="setor_@setor.Id">@setor.Nome</label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

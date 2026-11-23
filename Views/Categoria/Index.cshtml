@@ -1,0 +1,46 @@
+﻿@model IEnumerable<ProjetoISP.Baldan.Models.Checklist.Categoria>
+
+@{
+    ViewData["Title"] = "Categorias";
+    Layout = "_LayoutISP";
+}
+
+<div class="pagina-topo">
+    <div>
+        <h1 class="pagina-titulo">Categorias</h1>
+        <p class="pagina-sub">Agrupam os modelos de checklist.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">+ Nova categoria</a>
+</div>
+
+<partial name="_Mensagens" />
+
+<div class="painel p-0">
+    @if (!Model.Any())
+    {
+        <p class="vazio">Nenhuma categoria cadastrada.</p>
+    }
+    else
+    {
+        <table class="tabela-isp">
+            <thead>
+                <tr><th>Nome</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Nome</td>
+                        <td class="acoes">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Editar</a>
+                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
+                                  onsubmit="return confirm('Excluir esta categoria?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
